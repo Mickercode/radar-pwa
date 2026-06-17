@@ -1,0 +1,141 @@
+.auth {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* Brand / hero panel */
+.auth__hero {
+  display: none;
+  position: relative;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(2rem, 5vw, 4rem);
+  border-right: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(0, 194, 203, 0.06), transparent 40%);
+  overflow: hidden;
+}
+.auth__wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+}
+.auth__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 22px;
+}
+.auth__bars span {
+  width: 5px;
+  border-radius: 3px;
+  background: var(--cyan);
+}
+.auth__bars span:nth-child(1),
+.auth__bars span:nth-child(5) {
+  height: 40%;
+  opacity: 0.7;
+}
+.auth__bars span:nth-child(2),
+.auth__bars span:nth-child(4) {
+  height: 70%;
+}
+.auth__bars span:nth-child(3) {
+  height: 100%;
+}
+.auth__pitch {
+  max-width: 22ch;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: var(--step-3);
+  line-height: 1.05;
+}
+.auth__sub {
+  margin-top: 1rem;
+  color: var(--text-dim);
+  font-size: var(--step-1);
+  max-width: 34ch;
+}
+.auth__chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Form panel */
+.auth__panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.5rem, 6vw, 3rem);
+  min-height: 100dvh;
+}
+.auth__form {
+  width: 100%;
+  max-width: 380px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.auth__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-2);
+  letter-spacing: -0.02em;
+}
+.auth__switch {
+  color: var(--text-dim);
+  font-size: var(--step--1);
+  margin-top: 0.25rem;
+}
+.auth__switch a {
+  color: var(--cyan);
+  font-weight: 600;
+}
+.auth__mobilebrand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+}
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-wrap .toggle {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+}
+.input-wrap .toggle:hover {
+  color: var(--text-dim);
+}
+
+@media (min-width: 880px) {
+  .auth {
+    grid-template-columns: 1.1fr 1fr;
+  }
+  .auth__hero {
+    display: flex;
+  }
+  .auth__mobilebrand {
+    display: none;
+  }
+}

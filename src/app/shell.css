@@ -1,0 +1,136 @@
+.shell {
+  min-height: 100dvh;
+}
+
+/* ── Slim top brand header (identity only; nav lives in the bottom dock) ──── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+  background: rgba(8, 8, 10, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.nav__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+}
+.nav__bars span {
+  width: 4px;
+  border-radius: 2px;
+  background: var(--cyan);
+}
+.nav__bars span:nth-child(1),
+.nav__bars span:nth-child(5) { height: 40%; opacity: 0.7; }
+.nav__bars span:nth-child(2),
+.nav__bars span:nth-child(4) { height: 70%; }
+.nav__bars span:nth-child(3) { height: 100%; }
+
+.nav__spacer { margin-left: auto; }
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--bg-1);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+.icon-btn:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+/* ── Content ──────────────────────────────────────────────────────────────── */
+.shell__main {
+  padding-block: clamp(1.25rem, 4vw, 2.5rem);
+  /* clear the floating dock */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom) + 2rem);
+}
+
+/* ── Floating dock (bottom, rounded pill — all viewports) ─────────────────── */
+.dock {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom) + 14px);
+  z-index: 50;
+  width: min(440px, calc(100% - 28px));
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 2px;
+  padding: 7px;
+  background: rgba(16, 16, 20, 0.82);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  box-shadow: 0 16px 44px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.dock__item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 50px;
+  border-radius: 16px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.dock__item:hover {
+  color: var(--text-dim);
+}
+.dock__item.is-active {
+  color: var(--cyan);
+  background: rgba(34, 211, 238, 0.1);
+}
+
+/* Center capture action — raised, "cut out" of the dock with a bg-colored ring */
+.dock__fab {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-top: -22px;
+  border-radius: var(--r-pill);
+  border: 4px solid var(--bg);
+  background: linear-gradient(100deg, var(--cyan), #36e0d0);
+  color: #04141a;
+  box-shadow: 0 10px 26px -6px var(--accent-glow);
+  transition: transform var(--t-fast);
+}
+.dock__fab:hover {
+  transform: translateY(-2px);
+}

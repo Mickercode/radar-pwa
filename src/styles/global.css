@@ -1,0 +1,307 @@
+/* ============================================================================
+   Radar — design system (brand spec): Deep Charcoal + Rich Navy surfaces,
+   Signal Teal accent, DM Sans (body) + Space Grotesk (display).
+   "Understand once. Remember forever."
+   ============================================================================ */
+
+:root {
+  /* ── Surfaces — Radar brand: Deep Charcoal + Rich Navy ───────────────── */
+  --bg: #1a1a2e; /* Deep Charcoal — primary dark BG */
+  --bg-1: #16213e; /* Rich Navy — inputs / alt primary */
+  --bg-2: #222a44;
+  --bg-card: #1e2438;
+  --bg-hover: #28304c;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* ── Text ────────────────────────────────────────────────────────────── */
+  --text: #f7f7f9; /* Off-White */
+  --text-dim: #8892a4; /* Mid Grey — body text */
+  --text-faint: #5a6378; /* Slate-ish — secondary text */
+
+  /* ── Accent — Signal Teal (single brand accent) ──────────────────────── */
+  --cyan: #00c2cb; /* Signal Teal */
+  --purple: var(--cyan); /* brand is monochrome-accent; alias kept for callers */
+  --lime: #45d483; /* semantic green (Nigeria, takeaways) */
+  --amber: #f2b441; /* semantic gold (must-see tier) */
+  --coral: #fb7185; /* error only */
+  --accent: var(--cyan);
+  --accent-glow: rgba(0, 194, 203, 0.32);
+
+  /* Tier colors (PLAYBOOK §4A): 1 must-see, 2 strong, 3 weak */
+  --tier-1: var(--amber);
+  --tier-2: var(--cyan);
+  --tier-3: var(--text-faint);
+
+  /* ── Type — DM Sans (body) + Space Grotesk (display) ─────────────────── */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'DM Sans', system-ui, sans-serif; /* brand has no mono; alias to body */
+  --font-body: 'DM Sans', system-ui, sans-serif;
+
+  --step--1: clamp(0.78rem, 0.74rem + 0.2vw, 0.86rem);
+  --step-0: clamp(0.94rem, 0.9rem + 0.2vw, 1rem);
+  --step-1: clamp(1.13rem, 1.05rem + 0.4vw, 1.3rem);
+  --step-2: clamp(1.4rem, 1.25rem + 0.7vw, 1.8rem);
+  --step-3: clamp(1.9rem, 1.6rem + 1.5vw, 2.8rem);
+  --step-4: clamp(2.6rem, 2rem + 3vw, 4.2rem);
+
+  /* ── Space / radius / motion ─────────────────────────────────────────── */
+  --r-sm: 8px;
+  --r: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 0.15s var(--ease);
+  --t: 0.25s var(--ease);
+
+  --nav-h: 60px;
+  --tab-h: 64px;
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* Ambient mesh-gradient depth + faint scanlines for the terminal vibe. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60vw 60vw at 12% -10%, rgba(0, 194, 203, 0.08), transparent 60%),
+    radial-gradient(55vw 55vw at 100% 0%, rgba(22, 33, 62, 0.6), transparent 55%),
+    radial-gradient(60vw 60vw at 50% 120%, rgba(0, 194, 203, 0.05), transparent 60%);
+  pointer-events: none;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--accent-glow);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ── Typography helpers ───────────────────────────────────────────────────── */
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.gradient-text {
+  background: linear-gradient(100deg, var(--cyan), #5eead4 75%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 48px;
+  padding-inline: 1.4rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  background: var(--bg-2);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--t-fast), border-color var(--t-fast), background var(--t-fast),
+    box-shadow var(--t-fast);
+  user-select: none;
+}
+.btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+.btn:active {
+  transform: translateY(0);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn--primary {
+  background: linear-gradient(100deg, var(--cyan), #36e0d0);
+  border-color: transparent;
+  color: #04141a;
+  box-shadow: 0 6px 24px -8px var(--accent-glow);
+}
+.btn--primary:hover {
+  box-shadow: 0 10px 30px -6px var(--accent-glow);
+  border-color: transparent;
+}
+.btn--ghost {
+  background: transparent;
+  border-color: var(--border);
+}
+.btn--block {
+  width: 100%;
+}
+
+/* ── Form fields ──────────────────────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+.input {
+  height: 52px;
+  padding-inline: 1rem;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  width: 100%;
+}
+.input::placeholder {
+  color: var(--text-faint);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+.card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  transition: transform var(--t), border-color var(--t), background var(--t);
+  overflow: hidden;
+}
+.card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+}
+
+/* ── Badge (uppercase mono category/tier chips) ───────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.28em 0.7em;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ── Error / alert ────────────────────────────────────────────────────────── */
+.alert {
+  padding: 0.8rem 1rem;
+  border-radius: var(--r);
+  font-size: var(--step--1);
+  border: 1px solid;
+}
+.alert--error {
+  color: var(--coral);
+  background: rgba(251, 113, 133, 0.08);
+  border-color: rgba(251, 113, 133, 0.25);
+}
+
+/* ── Motion utility ───────────────────────────────────────────────────────── */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rise {
+  animation: rise 0.5s var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
