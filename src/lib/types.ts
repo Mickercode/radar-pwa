@@ -1,7 +1,7 @@
 // Domain types — mirror the shapes radar-backend serializes (ported from the
 // old app's types/content.ts). Keep in sync with the backend serializers.
 
-export type ContentType = 'podcast' | 'news' | 'clip';
+export type ContentType = 'podcast' | 'news' | 'clip' | 'essay' | 'longform';
 
 export interface Topic {
   id: string;

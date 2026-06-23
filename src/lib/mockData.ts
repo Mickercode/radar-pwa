@@ -4,11 +4,20 @@ import type { ContentItem, KeyMoment, Topic } from './types';
 // serializes, so swapping to the real API is a no-op for the UI.
 
 export const mockTopics: Topic[] = [
-  { id: 't-tech', name: 'Technology', slug: 'tech', color: '#22d3ee' },
-  { id: 't-biz', name: 'Business', slug: 'business', color: '#a855f7' },
+  { id: 't-climate', name: 'Climate', slug: 'climate', color: '#22d3ee' },
+  { id: 't-health', name: 'Health', slug: 'health', color: '#a855f7' },
   { id: 't-sci', name: 'Science', slug: 'science', color: '#a3e635' },
-  { id: 't-startups', name: 'Startups', slug: 'startups', color: '#fb7185' },
-  { id: 't-finance', name: 'Finance', slug: 'finance', color: '#fbbf24' },
+  { id: 't-tech', name: 'Tech', slug: 'tech', color: '#fb7185' },
+  { id: 't-biz', name: 'Business', slug: 'business', color: '#fbbf24' },
+  { id: 't-finance', name: 'Finance', slug: 'finance', color: '#22d3ee' },
+  { id: 't-politics', name: 'Politics', slug: 'politics', color: '#a855f7' },
+  { id: 't-sports', name: 'Sports', slug: 'sports', color: '#a3e635' },
+  { id: 't-music', name: 'Music', slug: 'music', color: '#fb7185' },
+  { id: 't-film', name: 'Film and TV', slug: 'film-tv', color: '#fbbf24' },
+  { id: 't-education', name: 'Education', slug: 'education', color: '#22d3ee' },
+  { id: 't-fashion', name: 'Fashion', slug: 'fashion', color: '#a855f7' },
+  { id: 't-travel', name: 'Travel and Lifestyle', slug: 'travel-lifestyle', color: '#a3e635' },
+  { id: 't-faith', name: 'Faith & Philosophy', slug: 'faith-philosophy', color: '#fb7185' },
 ];
 
 export const mockContent: ContentItem[] = [

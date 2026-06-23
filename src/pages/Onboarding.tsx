@@ -8,9 +8,11 @@ import { Icon } from '../components/Icon';
 const CONTENT_TYPES = [
   { key: 'podcast', label: 'Podcasts', icon: 'headphones' },
   { key: 'news', label: 'News articles', icon: 'feed' },
+  { key: 'essay', label: 'Essays', icon: 'file-text' },
+  { key: 'longform', label: 'Long-form pieces', icon: 'book' },
   { key: 'clip', label: 'Short clips', icon: 'play' },
 ];
-const LOCATIONS = ['Nigeria', 'Other African country', 'International'];
+const LOCATIONS = ['Nigeria', 'Africa', 'World'];
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -32,6 +34,43 @@ export default function Onboarding() {
     localStorage.setItem('radar_country', location);
     completeOnboarding();
     navigate('/', { replace: true });
+  }
+
+  function detectLocation() {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        // Use reverse geocoding to get country from coordinates
+        const { latitude, longitude } = position.coords;
+        try {
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          );
+          const data = await response.json();
+          const countryCode = data.countryCode;
+          
+          // Map country code to location option
+          if (countryCode === 'NG') {
+            setLocation('Nigeria');
+          } else if (['ZA', 'KE', 'EG', 'ET', 'DZ'].includes(countryCode)) {
+            setLocation('Africa');
+          } else {
+            setLocation('World');
+          }
+        } catch (error) {
+          console.error('Error detecting location:', error);
+          alert('Could not detect your location. Please select manually.');
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert('Could not access your location. Please select manually.');
+      }
+    );
   }
 
   return (
@@ -86,8 +125,11 @@ export default function Onboarding() {
 
       {step === 2 && (
         <div className="rise">
-          <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Where are you based?</h1>
-          <p className="page-sub" style={{ marginBottom: '1.5rem' }}>Tunes your Nigeria-first ranking.</p>
+          <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Select place of interest</h1>
+          <p className="page-sub" style={{ marginBottom: '1.5rem' }}>Personalize your content feed by region.</p>
+          <button className="btn btn--ghost btn--block" style={{ marginBottom: '1rem' }} onClick={detectLocation}>
+            <Icon name="location" size={18} /> Detect my location
+          </button>
           <div className="stack">
             {LOCATIONS.map((l) => (
               <button key={l} className="listrow" style={{ borderColor: location === l ? 'var(--cyan)' : undefined }} onClick={() => setLocation(l)}>

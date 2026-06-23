@@ -20,10 +20,10 @@ JWT, so **no user id is ever sent in request bodies/paths**.
 | PATCH | `/auth/name` | Settings | `{name}` → `{user}` |
 | PATCH | `/auth/password` | Change password | `{newPassword}` → `{ok}` |
 | DELETE | `/auth/account` | (account delete) | → `{ok}` |
-| GET | `/topics` | Onboarding | → `Topic[]` |
+| GET | `/topics` | Onboarding | → `Topic[]` (14 categories: Climate, Health, Science, Tech, Business, Finance, Politics, Sports, Music, Film & TV, Education, Fashion, Travel & Lifestyle, Faith & Philosophy) |
 | GET | `/feed?topicIds=a,b` | Feed | → `{items,isFallback,matchedTopics}` |
 | GET | `/content/:id` | Content detail | → `ContentItem` (404 → null) |
-| GET | `/content?type=news\|podcast\|clip` | Feed filters | → `ContentItem[]` |
+| GET | `/content?type=news\|podcast\|clip\|essay\|longform` | Feed filters | → `ContentItem[]` |
 | GET | `/content/:id/key-moments` | Content detail / player | → `KeyMoment[]` |
 | GET·POST | `/saved` · `DELETE /saved/:contentId` | Save button | scoped by JWT |
 | GET·PUT | `/preferences` | Onboarding / Settings | snake_case `UserPreferences` |
@@ -67,7 +67,9 @@ production.** Highest priority for a real launch.
 - Add `preferred_country` (`'NG' | 'AFRICA' | 'INTL'`) to `user_preferences` +
   `/preferences`. Feed ranking should boost it. Currently stored client-side
   (`localStorage 'radar_country'`).
-- Optional: `GET /feed?country=` for the Nigeria/Africa/International tabs.
+- Location options updated to: Nigeria, Africa, World (previously: Nigeria, Other African country, International)
+- GPS detection implemented in frontend using browser Geolocation API with reverse geocoding
+- Optional: `GET /feed?country=` for the Nigeria/Africa/World tabs.
 
 ### 5. File / PDF upload analysis
 - **Screen:** Capture (“PDF & file upload coming soon”).
@@ -104,6 +106,10 @@ production.** Highest priority for a real launch.
 - **`POST /auth/password` re-auth:** currently takes only `newPassword`; add optional `currentPassword` verification if desired.
 - **Content "Test yourself":** quizzes are per-insight. To quiz arbitrary content, the PWA would save it as an insight first (already possible) — no new endpoint strictly needed.
 - **Player position:** `/playback/:contentId` exists but the PWA player doesn't persist position yet — wire later.
+- **MediaStack API integration:** Frontend integrated with MediaStack for live news data. API key configured in `VITE_MEDIASTACK_API_KEY`. Categories mapped to app topics. Location-based filtering supported (Nigeria, Africa, World).
+- **Document upload UI:** Frontend UI built for PDF/Word document upload in Capture page. Backend endpoint `POST /content/analyse/upload` still needed.
+- **Content sources data structure:** Comprehensive content sources database created in `src/lib/contentSources.ts` with 100+ sources organized by category (Climate, Health, Science, Tech, Business, Finance, Politics, Sports, Music, Film & TV, Education, Fashion, Travel & Lifestyle, Faith & Philosophy), region (Nigeria, Africa, International), and format (written, podcast). Available via `useContentSources()` hook.
+- **Claude API for AI Summary:** API key configured in `VITE_CLAUDE_API_KEY` for AI-powered content analysis in the `/capture` endpoint. Used to generate What/Why/Edge summaries for captured links. Backend should use Anthropic Claude for this analysis. Get key at https://console.anthropic.com.
 
 ---
 

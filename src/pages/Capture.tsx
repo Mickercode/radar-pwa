@@ -16,6 +16,7 @@ export default function Capture() {
   const [url, setUrl] = useState('');
   const [preview, setPreview] = useState<CapturedInsight | null>(null);
   const [error, setError] = useState('');
+  const [file, setFile] = useState<File | null>(null);
 
   function analyse(e: React.FormEvent) {
     e.preventDefault();
@@ -23,8 +24,25 @@ export default function Capture() {
     setError('');
     capture.mutate(url.trim(), {
       onSuccess: setPreview,
-      onError: () => setError('Couldn’t analyse that link. Try another.'),
+      onError: () => setError('Couldn\'t analyse that link. Try another.'),
     });
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (!validTypes.includes(selectedFile.type)) {
+      setError('Please upload a PDF, Word document, or text file.');
+      return;
+    }
+
+    setFile(selectedFile);
+    setError('');
+    // TODO: Implement actual upload when backend endpoint is ready
+    // For now, show a placeholder message
+    alert('File upload will be available once the backend endpoint is implemented.');
   }
 
   function commit() {
@@ -94,8 +112,34 @@ export default function Capture() {
         </button>
       </form>
 
-      <div className="empty" style={{ minHeight: 'auto', marginTop: '2rem' }}>
-        <p style={{ fontSize: 'var(--step--1)' }}>📄 PDF & file upload is coming once the backend supports it.</p>
+      <div style={{ marginTop: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+          <div style={{ height: '1px', background: 'var(--border)', flex: 1 }} />
+          <span style={{ fontSize: 'var(--step--1)', color: 'var(--text-muted)' }}>OR</span>
+          <div style={{ height: '1px', background: 'var(--border)', flex: 1 }} />
+        </div>
+        <div className="stack">
+          <label className="btn btn--ghost btn--block" style={{ cursor: 'pointer' }}>
+            <Icon name="upload" size={18} /> Upload PDF or Word document
+            <input
+              type="file"
+              accept=".pdf,.docx,.txt"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+          </label>
+          {file && (
+            <div className="listrow" style={{ borderColor: 'var(--cyan)' }}>
+              <div className="listrow__main">
+                <div className="listrow__title">{file.name}</div>
+                <div className="listrow__sub" style={{ fontSize: 'var(--step--1)' }}>
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </div>
+              </div>
+              <Icon name="check" size={18} className="listrow__chev" style={{ color: 'var(--cyan)' }} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
