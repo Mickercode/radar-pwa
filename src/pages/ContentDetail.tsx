@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useContent, useKeyMoments } from '../features/content/queries';
 import { useSaved } from '../features/library/useSaved';
+import { useSaveInsight } from '../features/insights/queries';
 import { usePlayer } from '../stores/player';
 import { useToast } from '../components/Toast';
 import { ShareSheet } from '../components/ShareSheet';
@@ -15,9 +16,11 @@ export default function ContentDetail() {
   const { data: item, isLoading } = useContent(id);
   const { data: moments = [] } = useKeyMoments(id);
   const { isSaved, toggleSave } = useSaved();
+  const saveInsight = useSaveInsight();
   const play = usePlayer((s) => s.play);
   const { toast } = useToast();
   const [showShare, setShowShare] = useState(false);
+  const [savedToBrain, setSavedToBrain] = useState(false);
 
   if (isLoading) {
     return (
@@ -46,6 +49,24 @@ export default function ContentDetail() {
   const why = s?.why ?? s?.whyItMatters ?? '';
   const takeaways = s?.keyTakeaways ?? [];
   const saved = isSaved(item.id);
+
+  const handleSaveToBrain = async () => {
+    try {
+      await saveInsight.mutateAsync({
+        sourceContentId: item.id,
+        title: item.title,
+        what: what || item.summary?.summary || item.title,
+        why: why || 'Why this matters for Nigerian / African readers.',
+        edge: s?.edge || 'Read the full article for actionable insights.',
+        tags: [item.source],
+        tier: s?.tier ?? 2,
+      });
+      setSavedToBrain(true);
+      toast('Saved to your Brain', 'spark');
+    } catch {
+      toast('Could not save to brain', 'x');
+    }
+  };
 
   return (
     <div className="rise" style={{ maxWidth: 720, margin: '0 auto' }}>
@@ -111,8 +132,16 @@ export default function ContentDetail() {
       )}
 
       <div className="actionbar">
-        <button className={`btn ${saved ? 'btn--primary' : 'btn--ghost'}`} onClick={() => { toggleSave(item.id); toast(saved ? 'Removed' : 'Saved to your brain', saved ? 'x' : 'check'); }}>
+        <button className={`btn ${saved ? 'btn--primary' : 'btn--ghost'}`} onClick={() => { toggleSave(item.id); toast(saved ? 'Removed' : 'Saved', saved ? 'x' : 'check'); }}>
           <Icon name={saved ? 'check' : 'save'} size={18} /> {saved ? 'Saved' : 'Save'}
+        </button>
+        <button
+          className={`btn ${savedToBrain ? 'btn--primary' : 'btn--ghost'}`}
+          onClick={handleSaveToBrain}
+          disabled={savedToBrain || saveInsight.isPending}
+          style={{ opacity: savedToBrain || saveInsight.isPending ? 0.65 : 1 }}
+        >
+          <Icon name={savedToBrain ? 'spark' : 'brain'} size={18} /> {savedToBrain ? 'Saved to Brain' : saveInsight.isPending ? 'Saving…' : 'Save to Brain'}
         </button>
         <button className="btn btn--ghost" onClick={() => setShowShare(true)}>
           <Icon name="share" size={18} /> Share
