@@ -16,7 +16,13 @@ export function FeedCard({ item, onOpen }: { item: ContentItem; onOpen?: (id: st
   return (
     <article className="card fcard" data-tier={tier} onClick={() => onOpen?.(item.id)}>
       <div className="fcard__media">
-        {item.thumbnailUrl && <img src={item.thumbnailUrl} alt="" loading="lazy" />}
+        {item.thumbnailUrl ? (
+          <img src={item.thumbnailUrl} alt="" loading="lazy" />
+        ) : (
+          <div className="fcard__media-fallback">
+            <img src="/assets/logo-icon.jpeg" alt="" className="fcard__fallback-logo" />
+          </div>
+        )}
         <span className="badge fcard__type">{item.type}</span>
         {TIER_LABEL[tier] && <span className="fcard__tier">{TIER_LABEL[tier]}</span>}
       </div>

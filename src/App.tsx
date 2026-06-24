@@ -16,6 +16,7 @@ import Quiz from './pages/Quiz';
 import Weekly from './pages/Weekly';
 import Capture from './pages/Capture';
 import Player from './pages/Player';
+import Clips from './pages/Clips';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import ChangePassword from './pages/ChangePassword';
@@ -29,7 +30,15 @@ export default function App() {
     hydrate();
   }, [hydrate]);
 
-  if (status === 'loading') return null;
+  // Splash screen while auth state is hydrating — shows the real logo
+  if (status === 'loading') {
+    return (
+      <div className="splash">
+        <img src="/assets/logo-icon.jpeg" alt="Radar" className="splash__logo" />
+        <div className="splash__loader" />
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -47,6 +56,7 @@ export default function App() {
           <Route path="/review" element={<Review />} />
           <Route path="/quiz/:insightId" element={<Quiz />} />
           <Route path="/weekly" element={<Weekly />} />
+          <Route path="/clips" element={<Clips />} />
           <Route path="/capture" element={<Capture />} />
           <Route path="/player" element={<Player />} />
           <Route path="/profile" element={<Profile />} />

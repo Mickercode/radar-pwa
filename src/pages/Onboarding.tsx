@@ -29,8 +29,8 @@ export default function Onboarding() {
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
   async function finish() {
-    // preferred_country is client-side only for now (no backend field yet).
-    await savePreferences({ topic_ids: picked, content_types: types });
+    const countryMap: Record<string, string> = { Nigeria: 'NG', Africa: 'AFRICA', World: 'INTL' };
+    await savePreferences({ topic_ids: picked, content_types: types, preferred_country: countryMap[location] ?? '' });
     localStorage.setItem('radar_country', location);
     completeOnboarding();
     navigate('/', { replace: true });

@@ -10,7 +10,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'assets/logo-banner.jpeg', 'assets/logo-icon.jpeg'],
       manifest: {
         name: 'Radar — Understand once. Remember forever.',
         short_name: 'Radar',
@@ -35,7 +35,7 @@ export default defineConfig({
       workbox: {
         // Precache the app shell. (API responses aren't cached yet — that's a
         // later offline-support pass; runtime caching goes here when we add it.)
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,jpeg,woff2}'],
       },
       devOptions: { enabled: false },
     }),

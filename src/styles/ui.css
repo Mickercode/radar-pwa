@@ -150,7 +150,7 @@
 /* ── Stat row ─────────────────────────────────────────────────────────────── */
 .statrow {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.6rem;
   margin-bottom: 1.5rem;
 }
@@ -286,6 +286,39 @@
   font-family: var(--font-display);
   color: var(--text);
   font-size: var(--step-1);
+}
+
+/* ── Video player / clips ────────────────────────────────────────────────── */
+.video-player {
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.video-player--error {
+  min-height: 200px;
+}
+
+.clips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.listrow__remove {
+  flex: none;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0.9rem;
+  transition: color var(--t-fast);
+}
+.listrow__remove:hover {
+  color: var(--coral);
 }
 
 /* ── Toasts ───────────────────────────────────────────────────────────────── */

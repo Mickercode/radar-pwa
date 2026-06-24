@@ -3,12 +3,13 @@ import { DEMO_MODE } from '../../lib/demo';
 import {
   getMockContent,
   getMockKeyMoments,
+  getMockClips,
   mockContent,
   mockTopics,
 } from '../../lib/mockData';
 import { fetchNewsFromMediaStack, fetchNewsByTopic } from '../../lib/mediastack';
 import { getSourcesByCategoryAndLocation } from '../../lib/contentSources';
-import type { ContentItem, ContentType, FeedResult, KeyMoment, Topic } from '../../lib/types';
+import type { CapturedInsight, ContentItem, ContentType, FeedResult, KeyMoment, Topic } from '../../lib/types';
 
 // Catalog data from radar-backend (or mock data in demo mode).
 
@@ -36,7 +37,14 @@ export async function fetchFeed(topicIds?: string[]): Promise<FeedResult> {
 }
 
 export async function fetchContentByType(type: ContentType): Promise<ContentItem[]> {
-  if (DEMO_MODE) return mockContent.filter((c) => c.type === type);
+  if (DEMO_MODE) {
+    // Include both mockContent clips and dedicated mockClips
+    if (type === 'clip') {
+      const contentClips = mockContent.filter((c) => c.type === type);
+      return [...contentClips, ...getMockClips()];
+    }
+    return mockContent.filter((c) => c.type === type);
+  }
   const { data } = await api.get('/content', { params: { type } });
   return data;
 }
@@ -66,6 +74,29 @@ export async function fetchMediaStackNews(location?: string, limit: number = 20)
 // Fetch news from MediaStack for specific topic
 export async function fetchMediaStackNewsByTopic(topicSlug: string, location?: string): Promise<ContentItem[]> {
   return fetchNewsByTopic(topicSlug, location, 10);
+}
+
+// ── File upload ─────────────────────────────────────────────────────────────
+
+/** Upload a PDF, Word, or text file for AI analysis. Returns a CapturedInsight preview. */
+export async function uploadFile(file: File): Promise<CapturedInsight> {
+  if (DEMO_MODE) {
+    return {
+      sourceUrl: 'upload',
+      title: file.name.replace(/\.[^/.]+$/, '') || 'Uploaded document',
+      what: 'A concise distillation of the uploaded document would appear here once the backend AI pipeline runs.',
+      why: 'Radar explains why it matters for a Nigerian / African reader.',
+      edge: 'And gives you one concrete, non-obvious action to take.',
+      tier: 2,
+      nigeriaRelevance: 1,
+    };
+  }
+  const form = new FormData();
+  form.append('file', file);
+  const { data } = await api.post('/content/analyse/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
 }
 
 // Fetch content sources for a category and location

@@ -131,6 +131,51 @@ a {
   background-clip: padding-box;
 }
 
+/* ── Splash screen ────────────────────────────────────────────────────────── */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  background: var(--bg);
+}
+.splash__logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  object-fit: cover;
+  animation: splashPulse 1.6s var(--ease) infinite;
+}
+.splash__loader {
+  width: 120px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  position: relative;
+}
+.splash__loader::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: var(--cyan);
+  border-radius: 999px;
+  animation: splashSlide 1.2s var(--ease) infinite;
+}
+@keyframes splashPulse {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+@keyframes splashSlide {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
 /* ── Typography helpers ───────────────────────────────────────────────────── */
 .display {
   font-family: var(--font-display);
@@ -267,6 +312,14 @@ a {
   border: 1px solid var(--border-strong);
   color: var(--text-dim);
   white-space: nowrap;
+}
+.badge--insight {
+  border-color: rgba(0, 194, 203, 0.25);
+  color: var(--cyan);
+}
+.badge--saved {
+  border-color: rgba(69, 212, 131, 0.25);
+  color: var(--lime);
 }
 
 /* ── Error / alert ────────────────────────────────────────────────────────── */

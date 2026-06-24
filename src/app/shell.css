@@ -20,27 +20,12 @@
 .nav__brand {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: -0.02em;
 }
-.nav__bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 18px;
+.nav__logo {
+  height: 52px;
+  width: auto;
+  display: block;
 }
-.nav__bars span {
-  width: 4px;
-  border-radius: 2px;
-  background: var(--cyan);
-}
-.nav__bars span:nth-child(1),
-.nav__bars span:nth-child(5) { height: 40%; opacity: 0.7; }
-.nav__bars span:nth-child(2),
-.nav__bars span:nth-child(4) { height: 70%; }
-.nav__bars span:nth-child(3) { height: 100%; }
 
 .nav__spacer { margin-left: auto; }
 .icon-btn {
@@ -60,6 +45,76 @@
   color: var(--text);
   border-color: var(--border-strong);
   transform: translateY(-2px);
+}
+
+/* ── PWA install banner ──────────────────────────────────────────────────── */
+.pwa-install {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom) + 120px);
+  z-index: 44;
+  width: min(440px, calc(100% - 32px));
+  max-width: calc(100vw - 32px);
+  animation: rise 0.3s var(--ease) both;
+}
+.pwa-install__body {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.75rem;
+  background: rgba(18, 18, 22, 0.94);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  box-shadow: 0 14px 36px -12px rgba(0, 0, 0, 0.7);
+  font-size: var(--step--1);
+  line-height: 1.3;
+}
+.pwa-install__body svg {
+  color: var(--cyan);
+  flex: none;
+}
+.pwa-install__body span {
+  flex: 1;
+  min-width: 0;
+}
+.pwa-install__btn {
+  flex: none;
+  height: 36px;
+  padding-inline: 1rem;
+  font-size: var(--step--1);
+}
+.pwa-install__close {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.pwa-install__close:hover {
+  color: var(--text);
+  background: var(--bg-2);
+}
+
+@media (max-width: 480px) {
+  .pwa-install__body {
+    font-size: 0.75rem;
+    padding: 0.6rem 0.5rem;
+    gap: 0.4rem;
+  }
+  .pwa-install__btn {
+    height: 32px;
+    padding-inline: 0.7rem;
+    font-size: 0.7rem;
+  }
 }
 
 /* ── Content ──────────────────────────────────────────────────────────────── */
@@ -97,13 +152,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  height: 50px;
-  border-radius: 16px;
+  gap: 2px;
+  height: 48px;
+  border-radius: 14px;
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.05em;
+  font-size: 0.52rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   transition: color var(--t-fast), background var(--t-fast);
 }
@@ -113,6 +168,9 @@
 .dock__item.is-active {
   color: var(--cyan);
   background: rgba(34, 211, 238, 0.1);
+}
+.dock__item span {
+  line-height: 1;
 }
 
 /* Center capture action — raised, "cut out" of the dock with a bg-colored ring */

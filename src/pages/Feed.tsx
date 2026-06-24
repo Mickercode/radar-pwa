@@ -2,20 +2,30 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FeedCard } from '../components/FeedCard';
 import { useFeed } from '../features/content/queries';
+import { useAuth } from '../stores/auth';
+import { fetchPreferences } from '../features/account/preferencesApi';
+import { useQuery } from '@tanstack/react-query';
 import type { ContentType } from '../lib/types';
 import './feed.css';
 
-const FILTERS: { key: 'all' | ContentType; label: string }[] = [
+const FILTERS: { key: 'all' | ContentType | 'clips'; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'podcast', label: 'Podcasts' },
   { key: 'news', label: 'News' },
-  { key: 'clip', label: 'Clips' },
+  { key: 'clips', label: 'Clips' },
 ];
 
 export default function Feed() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'all' | ContentType>('all');
-  const { data, isLoading, isError } = useFeed();
+  const userId = useAuth((s) => s.user?.id);
+  const { data: prefs } = useQuery({
+    queryKey: ['feed-prefs', userId],
+    queryFn: fetchPreferences,
+    enabled: !!userId,
+  });
+  const topicIds = prefs?.topic_ids?.length ? prefs.topic_ids : undefined;
+  const { data, isLoading, isError } = useFeed(topicIds);
 
   const items = useMemo(() => {
     const all = data?.items ?? [];
@@ -35,7 +45,7 @@ export default function Feed() {
           <button
             key={f.key}
             className={`badge chip${filter === f.key ? ' is-active' : ''}`}
-            onClick={() => setFilter(f.key)}
+            onClick={() => f.key === 'clips' ? navigate('/clips') : setFilter(f.key)}
           >
             {f.label}
           </button>

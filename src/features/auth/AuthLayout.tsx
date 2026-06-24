@@ -1,26 +1,13 @@
 import type { ReactNode } from 'react';
 import './auth.css';
 
-function Wordmark() {
-  return (
-    <span className="auth__bars" aria-hidden>
-      <span />
-      <span />
-      <span />
-      <span />
-      <span />
-    </span>
-  );
-}
-
 /** Split brand-hero + form layout shared by sign-in and sign-up. */
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="auth">
       <aside className="auth__hero">
         <div className="auth__wordmark">
-          <Wordmark />
-          Radar
+          <img src="/assets/logo-banner.jpeg" alt="Radar" className="auth__logo" />
         </div>
         <div>
           <h1 className="auth__pitch">
@@ -43,8 +30,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <main className="auth__panel">
         <div className="auth__form">
           <div className="auth__mobilebrand">
-            <Wordmark />
-            Radar
+            <img src="/assets/logo-icon.jpeg" alt="Radar" className="auth__moblogo" />
           </div>
           {children}
         </div>

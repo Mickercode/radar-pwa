@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCaptureUrl, useSaveInsight } from '../features/insights/queries';
+import { uploadFile } from '../features/content/contentApi';
 import { useToast } from '../components/Toast';
 import { Icon } from '../components/Icon';
 import type { CapturedInsight } from '../lib/types';
@@ -28,7 +29,7 @@ export default function Capture() {
     });
   }
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
@@ -40,9 +41,13 @@ export default function Capture() {
 
     setFile(selectedFile);
     setError('');
-    // TODO: Implement actual upload when backend endpoint is ready
-    // For now, show a placeholder message
-    alert('File upload will be available once the backend endpoint is implemented.');
+
+    try {
+      const result = await uploadFile(selectedFile);
+      setPreview(result);
+    } catch {
+      setError('Couldn\'t analyse that file. Try another.');
+    }
   }
 
   function commit() {

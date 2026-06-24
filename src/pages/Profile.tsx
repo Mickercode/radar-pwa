@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../stores/auth';
 import { useInsights } from '../features/insights/queries';
 import { useDueCount } from '../features/reviews/queries';
+import { fetchSavedItems } from '../features/library/libraryApi';
 import { Icon } from '../components/Icon';
 
 // Screen 5.1 — Profile.
@@ -10,6 +12,12 @@ export default function Profile() {
   const user = useAuth((s) => s.user);
   const { data: insights = [] } = useInsights();
   const { data: due = 0 } = useDueCount();
+  const userId = useAuth((s) => s.user?.id);
+  const { data: savedItems = [] } = useQuery({
+    queryKey: ['brain-saved', userId],
+    queryFn: fetchSavedItems,
+    enabled: !!userId,
+  });
 
   const initial = (user?.name ?? user?.email ?? '?').charAt(0).toUpperCase();
 
@@ -33,6 +41,9 @@ export default function Profile() {
 
       <div className="statrow">
         <div className="stat"><div className="stat__num">{insights.length}</div><div className="stat__label">Insights</div></div>
+        <button className="stat" style={{ cursor: 'pointer' }} onClick={() => navigate('/brain')}>
+          <div className="stat__num">{savedItems.length}</div><div className="stat__label">Saved →</div>
+        </button>
         <button className="stat" style={{ cursor: 'pointer' }} onClick={() => navigate('/review')}>
           <div className="stat__num" style={{ color: due ? 'var(--cyan)' : undefined }}>{due}</div>
           <div className="stat__label">Due →</div>
@@ -43,6 +54,11 @@ export default function Profile() {
       </div>
 
       <div className="stack">
+        <button className="listrow" onClick={() => navigate('/brain')}>
+          <Icon name="brain" size={20} className="listrow__chev" />
+          <div className="listrow__main"><div className="listrow__title">Your Brain</div><div className="listrow__sub">{insights.length} insights · {savedItems.length} saved</div></div>
+          <Icon name="right" size={18} className="listrow__chev" />
+        </button>
         <button className="listrow" onClick={() => navigate('/settings')}>
           <Icon name="settings" size={20} className="listrow__chev" />
           <div className="listrow__main"><div className="listrow__title">Settings</div></div>

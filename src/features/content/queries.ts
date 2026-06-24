@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ContentType } from '../../lib/types';
-import { fetchContentById, fetchContentSources, fetchFeed, fetchKeyMoments, fetchMediaStackNews, fetchMediaStackNewsByTopic, fetchTopics } from './contentApi';
+import { fetchContentById, fetchContentByType, fetchContentSources, fetchFeed, fetchKeyMoments, fetchMediaStackNews, fetchMediaStackNewsByTopic, fetchTopics } from './contentApi';
 
 export function useTopics() {
   return useQuery({ queryKey: ['topics'], queryFn: fetchTopics, staleTime: 5 * 60_000 });
@@ -56,5 +56,14 @@ export function useContentSources(category: string, location: string) {
     queryKey: ['content-sources', category, location],
     queryFn: () => fetchContentSources(category, location),
     staleTime: 60 * 60_000, // 1 hour - sources don't change often
+  });
+}
+
+// ── Clips ───────────────────────────────────────────────────────────────────
+
+export function useClips() {
+  return useQuery({
+    queryKey: ['clips'],
+    queryFn: () => fetchContentByType('clip'),
   });
 }

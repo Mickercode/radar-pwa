@@ -6,6 +6,7 @@ import { useSaveInsight } from '../features/insights/queries';
 import { usePlayer } from '../stores/player';
 import { useToast } from '../components/Toast';
 import { ShareSheet } from '../components/ShareSheet';
+import { VideoPlayer, extractYoutubeId } from '../components/VideoPlayer';
 import { Icon } from '../components/Icon';
 import { clock, durationLabel, timeAgo } from '../lib/format';
 
@@ -44,6 +45,9 @@ export default function ContentDetail() {
     );
   }
 
+  const isClip = item.type === 'clip';
+  const videoId = isClip ? extractYoutubeId(item.externalId ?? item.videoUrl ?? '') : null;
+
   const s = item.summary;
   const what = s?.what ?? s?.summary ?? '';
   const why = s?.why ?? s?.whyItMatters ?? '';
@@ -74,6 +78,12 @@ export default function ContentDetail() {
         <button className="backbtn" onClick={() => navigate(-1)} aria-label="Back"><Icon name="left" size={20} /></button>
         <span className="page-kicker">{item.type}</span>
       </div>
+
+      {isClip && videoId && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <VideoPlayer videoId={videoId} aspectRatio={item.aspectRatio ?? 16 / 9} />
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', fontFamily: 'var(--font-mono)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-faint)', marginBottom: '0.6rem' }}>
         <span>{item.source}</span>

@@ -60,7 +60,8 @@ export const mockContent: ContentItem[] = [
   {
     id: '3', type: 'clip', title: 'The 4-day work week trial results are in',
     source: 'TechCabal', duration: 95, topicId: 't-biz', createdAt: '2026-06-08T17:00:00Z',
-    videoUrl: 'https://youtube.com',
+    videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ',
+    externalId: 'dQw4w9WgXcQ',
     summary: {
       id: 's3', contentId: '3', tier: 2, nigeriaRelevance: 2,
       what: 'Across 61 companies that kept a 4-day week, output held steady while burnout and attrition dropped sharply.',
@@ -94,6 +95,115 @@ export const mockContent: ContentItem[] = [
     },
   },
 ];
+
+// ── Clip-specific mock data (short video content) ───────────────────────────
+export const mockClips: ContentItem[] = [
+  {
+    id: 'c1', type: 'clip', title: 'AI coding assistants are changing how we build',
+    source: 'The Verge', duration: 180, topicId: 't-tech', createdAt: '2026-06-10T10:00:00Z',
+    videoUrl: 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+    externalId: 'jNQXAC9IVRw',
+    aspectRatio: 16 / 9,
+    summary: {
+      id: 'sc1', contentId: 'c1', tier: 1, nigeriaRelevance: 2,
+      what: 'AI pair-programming tools now handle boilerplate, tests, and refactoring — letting developers focus on architecture and logic.',
+      why: 'For Nigerian dev shops competing globally, AI-assisted coding can double output without doubling headcount.',
+      edge: 'The edge isn\'t the AI — it\'s having the taste to know when the AI is wrong.',
+      summary: 'AI coding assistants are levelling the playing field.',
+      keyTakeaways: [
+        'Boilerplate generation is where AI assistants save the most time.',
+        'Code review shifts from spotting typos to evaluating architecture decisions.',
+        'Junior devs become productive faster — widening the talent pool.',
+      ],
+      whyItMatters: 'AI tools don\'t replace developers; they raise the baseline of what one developer can ship.',
+    },
+  },
+  {
+    id: 'c2', type: 'clip', title: 'Why Lagos traffic might finally get better',
+    source: 'TechCabal', duration: 145, topicId: 't-tech', createdAt: '2026-06-09T14:00:00Z',
+    videoUrl: 'https://youtu.be/dQw4w9WgXcQ',
+    externalId: 'dQw4w9WgXcQ',
+    aspectRatio: 16 / 9,
+    summary: {
+      id: 'sc2', contentId: 'c2', tier: 2, nigeriaRelevance: 3,
+      what: 'New AI-powered traffic light system piloting in three Lagos junctions cut average wait times by 34%.',
+      why: 'Traffic costs Lagos an estimated ₦4 trillion annually in lost productivity — even small improvements compound massively.',
+      edge: 'If the pilot holds, expect rapid expansion. Real estate along pilot corridors could see value shifts within 6 months.',
+      summary: 'AI traffic lights cut Lagos wait times by 34%.',
+      keyTakeaways: [
+        'Pilot covers three major junctions: Ikeja, VI, and Lekki.',
+        'System adapts in real-time to traffic volume, not fixed timers.',
+        'Full rollout would require upgrading 200+ intersections.',
+      ],
+      whyItMatters: 'Lagos traffic isn\'t just an annoyance — it\'s a structural drag on economic output.',
+    },
+  },
+  {
+    id: 'c3', type: 'clip', title: 'This fintech is banking the unbanked in rural Nigeria',
+    source: 'Nairametrics', duration: 210, topicId: 't-finance', createdAt: '2026-06-08T09:00:00Z',
+    videoUrl: 'https://www.youtube.com/watch?v=9bZkp7q19f0',
+    externalId: '9bZkp7q19f0',
+    aspectRatio: 16 / 9,
+    summary: {
+      id: 'sc3', contentId: 'c3', tier: 1, nigeriaRelevance: 3,
+      what: 'A new fintech uses USSD + agent networks to reach farmers and traders in 14 states with no bank branch.',
+      why: '56% of Nigerian adults remain unbanked. Mobile-money agents are cheaper than branches and reach deeper into rural areas.',
+      edge: 'The moat won\'t be the app — it\'ll be the trust relationship with local agents. Fintechs that invest in agent training will win.',
+      summary: 'USSD + agent banking is reaching the last mile.',
+      keyTakeaways: [
+        'No smartphone required — USSD works on any phone.',
+        'Agents earn commission on every transaction, creating local jobs.',
+        '14-state network already processing ₦500M+ monthly.',
+      ],
+      whyItMatters: 'Financial inclusion in Nigeria means going where smartphones haven\'t arrived yet.',
+    },
+  },
+  {
+    id: 'c4', type: 'clip', title: 'How protein powder is made (industrial scale)',
+    source: 'BBC Reel', duration: 280, topicId: 't-sci', createdAt: '2026-06-07T16:00:00Z',
+    videoUrl: 'https://www.youtube.com/watch?v=9bZkp7q19f0',
+    externalId: '9bZkp7q19f0',
+    aspectRatio: 16 / 9,
+    summary: {
+      id: 'sc4', contentId: 'c4', tier: 3, nigeriaRelevance: 1,
+      what: 'A tour of the largest protein powder facility in West Africa, producing 40 tons per month from locally sourced soy.',
+      why: 'Nigeria imports most protein supplements despite having the raw materials — local production could drastically lower prices.',
+      edge: 'Watch for local supplement brands disrupting the imported premium market within 12 months.',
+      summary: 'Local protein production scales up in West Africa.',
+      keyTakeaways: [
+        'Facility processes 200 tons of soybeans monthly.',
+        'End-product retails at 40% less than imported equivalents.',
+        'Plans to expand into plant-based meat alternatives.',
+      ],
+      whyItMatters: 'Import substitution in health supplements is a growing opportunity.',
+    },
+  },
+  {
+    id: 'c5', type: 'clip', title: 'Lagos\' new Blue Line rail — first ride review',
+    source: 'Pulse Nigeria', duration: 165, topicId: 't-politics', createdAt: '2026-06-06T11:00:00Z',
+    videoUrl: 'https://youtu.be/jNQXAC9IVRw',
+    externalId: 'jNQXAC9IVRw',
+    aspectRatio: 16 / 9,
+    summary: {
+      id: 'sc5', contentId: 'c5', tier: 2, nigeriaRelevance: 3,
+      what: 'First-hand ride review of Lagos Blue Line from Marina to Mile 2 — smooth ride, 15 minutes vs 1.5 hours by road.',
+      why: 'Lagos rail could fundamentally reshape commuting patterns and property values along the corridor.',
+      edge: 'Real estate within 1km of Blue Line stations is still undervalued — the full impact won\'t be priced in for another 6-12 months.',
+      summary: 'Lagos Blue Line rail is a game-changer for commuters.',
+      keyTakeaways: [
+        'Journey time cut by 80% compared to road.',
+        'Air-conditioned carriages with reliable power.',
+        'Phase 2 extending to Okokomaiko already under construction.',
+      ],
+      whyItMatters: 'Urban rail is the single highest-leverage infrastructure investment for African megacities.',
+    },
+  },
+];
+
+/** Returns all clip-type mock items sorted by recency. */
+export function getMockClips(): ContentItem[] {
+  return [...mockClips].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
 
 const KEY_MOMENTS: Record<string, KeyMoment[]> = {
   '2': [

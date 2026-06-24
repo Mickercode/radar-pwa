@@ -171,4 +171,5 @@ export interface UserPreferences {
   content_types: string[];
   playback_speed: number;
   push_token?: string | null;
+  preferred_country?: string;
 }
