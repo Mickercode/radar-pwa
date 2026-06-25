@@ -4,7 +4,7 @@ import { Icon } from '../components/Icon';
 import { usePlayer } from '../stores/player';
 import { useSaveInsight } from '../features/insights/queries';
 import { useToast } from '../components/Toast';
-import type { PodcastFeed, PodcastEpisode } from '../lib/types';
+import type { PodcastFeed, PodcastEpisode, RecommendedPodcast } from '../lib/types';
 import {
   searchPodcasts,
   getEpisodes,

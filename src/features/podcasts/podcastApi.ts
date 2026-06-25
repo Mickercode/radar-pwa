@@ -1,5 +1,5 @@
 import { api } from '../../lib/api';
-import type { PodcastSearchResult, EpisodeResult, RecommendedPodcast } from '../../lib/types';
+import type { PodcastSearchResult, EpisodeResult, RecommendedPodcast, PodcastEpisode } from '../../lib/types';
 import { RECOMMENDED_PODCASTS, MOCK_SEARCH_RESULTS } from './mockPodcasts';
 
 const DEMO_MODE = !import.meta.env.VITE_API_URL;
