@@ -34,7 +34,7 @@ export default function App() {
   if (status === 'loading') {
     return (
       <div className="splash">
-        <img src="/assets/logo-icon.jpeg" alt="Radar" className="splash__logo" />
+        <img src="/assets/logo-icon.png" alt="Radar" className="splash__logo" />
         <div className="splash__loader" />
       </div>
     );

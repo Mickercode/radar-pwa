@@ -1,0 +1,259 @@
+/* ── Knowledge Web (Brain upgrade, PLAYBOOK §4B) ──────────────────────────────── */
+
+/* Header */
+.kw-header {
+  margin-bottom: 1.25rem;
+}
+.kw-title {
+  font-size: clamp(var(--step-2), 5vw, var(--step-3));
+}
+
+/* Stats row */
+.kw-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+.kw-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1rem 0.6rem;
+  text-align: center;
+  transition: border-color var(--t-fast), transform var(--t-fast);
+}
+.kw-stat--clickable {
+  cursor: pointer;
+}
+.kw-stat--clickable:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+.kw-stat--accent .kw-stat__num {
+  color: var(--cyan);
+}
+.kw-stat__num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-2);
+  letter-spacing: -0.02em;
+}
+.kw-stat__label {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-top: 0.1rem;
+}
+
+/* Tabs */
+.kw-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0;
+}
+.kw-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--r-pill);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: var(--step--1);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+.kw-tab:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.kw-tab.is-active {
+  background: var(--bg-2);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+/* Search clear */
+.kw-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.kw-search-clear:hover {
+  color: var(--text);
+  background: var(--bg-2);
+}
+
+/* Sections */
+.kw-overview {
+  margin-top: 1rem;
+}
+.kw-section {
+  margin-bottom: 1.5rem;
+}
+.kw-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+}
+.kw-section__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-0);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.kw-section__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: none;
+  border: none;
+  color: var(--cyan);
+  font-size: var(--step--1);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--r-pill);
+  transition: background var(--t-fast);
+}
+.kw-section__action:hover {
+  background: var(--bg-1);
+}
+.kw-section__body {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1rem;
+}
+
+/* Knowledge graph (compact) */
+.kw-graph {
+  width: 100%;
+  max-height: 220px;
+  overflow: visible;
+}
+.kw-graph__edge {
+  transition: stroke-opacity 0.2s;
+}
+.kw-graph__node {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.kw-graph__node:hover {
+  opacity: 1 !important;
+}
+.kw-graph__node:hover circle:first-of-type {
+  stroke-width: 3;
+}
+.kw-graph__label {
+  pointer-events: none;
+}
+
+/* Knowledge graph (full-page) */
+.kw-graph-view {
+  margin-top: 1rem;
+}
+.kw-graph-view__canvas {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.kw-graph-full {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+}
+.kw-graph-view__hint {
+  color: var(--text-faint);
+  font-size: var(--step--1);
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+/* Tags row */
+.kw-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.kw-tag-count {
+  margin-left: 0.3rem;
+  font-size: 0.62rem;
+  opacity: 0.7;
+}
+
+/* Gap analysis */
+.kw-gap-icon {
+  font-size: 0.9rem;
+}
+.kw-gap {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.kw-gap:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.kw-gap__head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+  flex-wrap: wrap;
+}
+.kw-gap__meta {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+.kw-gap__tip {
+  font-size: var(--step--1);
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* Growth chart */
+.kw-chart {
+  width: 100%;
+  max-height: 120px;
+  overflow: visible;
+}
+
+/* Timeline */
+.kw-timeline {
+  margin-top: 1rem;
+}
+
+/* Loading state */
+.kw-loading {
+  margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 420px) {
+  .kw-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .kw-stat__num {
+    font-size: var(--step-1);
+  }
+}

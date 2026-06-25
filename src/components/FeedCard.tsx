@@ -20,7 +20,7 @@ export function FeedCard({ item, onOpen }: { item: ContentItem; onOpen?: (id: st
           <img src={item.thumbnailUrl} alt="" loading="lazy" />
         ) : (
           <div className="fcard__media-fallback">
-            <img src="/assets/logo-icon.jpeg" alt="" className="fcard__fallback-logo" />
+            <img src="/assets/logo-icon.png" alt="" className="fcard__fallback-logo" />
           </div>
         )}
         <span className="badge fcard__type">{item.type}</span>

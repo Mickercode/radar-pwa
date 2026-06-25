@@ -10,7 +10,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'assets/logo-banner.jpeg', 'assets/logo-icon.jpeg'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'assets/logo-banner.png', 'assets/logo-icon.png'],
       manifest: {
         name: 'Radar — Understand once. Remember forever.',
         short_name: 'Radar',

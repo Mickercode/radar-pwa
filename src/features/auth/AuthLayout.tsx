@@ -7,7 +7,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
     <div className="auth">
       <aside className="auth__hero">
         <div className="auth__wordmark">
-          <img src="/assets/logo-banner.jpeg" alt="Radar" className="auth__logo" />
+          <img src="/assets/logo-banner.png" alt="Radar" className="auth__logo" />
         </div>
         <div>
           <h1 className="auth__pitch">
@@ -30,7 +30,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <main className="auth__panel">
         <div className="auth__form">
           <div className="auth__mobilebrand">
-            <img src="/assets/logo-icon.jpeg" alt="Radar" className="auth__moblogo" />
+            <img src="/assets/logo-icon.png" alt="Radar" className="auth__moblogo" />
           </div>
           {children}
         </div>

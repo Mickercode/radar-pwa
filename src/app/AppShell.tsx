@@ -12,7 +12,7 @@ export function AppShell() {
     <div className="shell">
       <header className="nav">
         <NavLink to="/" className="nav__brand">
-          <img src="/assets/logo-banner.jpeg" alt="Radar" className="nav__logo" />
+          <img src="/assets/logo-banner.png" alt="Radar" className="nav__logo" />
         </NavLink>
       </header>
 

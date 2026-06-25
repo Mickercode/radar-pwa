@@ -129,6 +129,40 @@ export interface QuizAttempt {
   attemptedAt: string;
 }
 
+// ── Knowledge Web ───────────────────────────────────────────────────────────
+
+export interface KnowledgeWebStats {
+  totalInsights: number;
+  totalEdges: number;
+  tierDistribution: { '1': number; '2': number; '3': number };
+  newThisWeek: number;
+  newThisMonth: number;
+  activeStreakDays: number;
+  topTags: { tag: string; count: number }[];
+}
+
+export interface KnowledgeWebGap {
+  topic: string;
+  insightCount: number;
+  avgTier: number;
+  suggestion: string;
+}
+
+export interface KnowledgeWebGaps {
+  gaps: KnowledgeWebGap[];
+  totalTags: number;
+}
+
+export interface KnowledgeWebWeek {
+  weekStart: string;
+  insightCount: number;
+  edgeCount: number;
+}
+
+export interface KnowledgeWebGrowth {
+  weeks: KnowledgeWebWeek[];
+}
+
 // ── Weekly review ──────────────────────────────────────────────────────────────
 
 export interface WeeklyReview {

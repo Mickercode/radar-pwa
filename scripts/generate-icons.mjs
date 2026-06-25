@@ -13,7 +13,7 @@
 import { mkdirSync, existsSync } from 'fs';
 import sharp from 'sharp';
 
-const LOGO = 'public/assets/logo-icon.jpeg';
+const LOGO = 'public/assets/logo-icon.png';
 const OUT = 'public/icons';
 
 // Ensure output directory exists
