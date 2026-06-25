@@ -36,6 +36,10 @@ export function AppShell() {
           <Icon name="clip" size={20} />
           Clips
         </NavLink>
+        <NavLink to="/podcasts" className={itemClass}>
+          <Icon name="headphones" size={20} />
+          Podcasts
+        </NavLink>
         <NavLink to="/capture" className="dock__fab" aria-label="Save to Radar">
           <Icon name="capture" size={24} />
         </NavLink>

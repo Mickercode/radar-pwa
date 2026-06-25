@@ -17,6 +17,7 @@ import Weekly from './pages/Weekly';
 import Capture from './pages/Capture';
 import Player from './pages/Player';
 import Clips from './pages/Clips';
+import Podcasts from './pages/Podcasts';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import ChangePassword from './pages/ChangePassword';
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/quiz/:insightId" element={<Quiz />} />
           <Route path="/weekly" element={<Weekly />} />
           <Route path="/clips" element={<Clips />} />
+          <Route path="/podcasts" element={<Podcasts />} />
           <Route path="/capture" element={<Capture />} />
           <Route path="/player" element={<Player />} />
           <Route path="/profile" element={<Profile />} />

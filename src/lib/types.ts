@@ -187,6 +187,56 @@ export interface CapturedInsight {
   nigeriaRelevance: 0 | 1 | 2 | 3;
 }
 
+// ── Podcast search (Podcast Index) ─────────────────────────────────────────────
+
+export interface PodcastFeed {
+  id: number;
+  title: string;
+  url: string;
+  image: string;
+  description: string;
+  author?: string;
+  language: string;
+  categories?: Record<string, string>;
+  itunesId?: number;
+}
+
+export interface PodcastEpisode {
+  id: number;
+  title: string;
+  enclosureUrl: string;
+  enclosureType: string;
+  description: string;
+  duration: number;
+  datePublished: number;
+  feedId: number;
+  feedTitle: string;
+  feedImage?: string;
+}
+
+export interface PodcastSearchResult {
+  status: boolean;
+  feeds: PodcastFeed[];
+  count: number;
+}
+
+export interface EpisodeResult {
+  status: boolean;
+  items: PodcastEpisode[];
+  count: number;
+}
+
+export interface RecommendedPodcast {
+  id: number;
+  title: string;
+  author: string;
+  image: string;
+  description: string;
+  feedUrl: string;
+  category: string;
+  episodeCount: number;
+}
+
 // ── Auth / prefs ────────────────────────────────────────────────────────────────
 
 export interface AuthUser {
