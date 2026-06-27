@@ -7,6 +7,7 @@ const navItems = [
   { to: '/clips',     icon: 'play'       as const, label: 'Clips'    },
   { to: '/podcasts',  icon: 'headphones' as const, label: 'Podcasts' },
   { to: '/capture',   icon: 'capture'    as const, label: 'Capture'  },
+  { to: '/notebook',  icon: 'notebook'   as const, label: 'Notes'    },
   { to: '/brain',     icon: 'brain'      as const, label: 'Brain'    },
   { to: '/profile',   icon: 'profile'    as const, label: 'You'      },
 ] as const;

@@ -235,13 +235,14 @@ a {
   justify-content: center;
   gap: 2px;
   height: 48px;
-  border-radius: 14px;
+  border-radius: 12px;
   color: var(--text-faint);
   font-family: var(--font-mono);
-  font-size: 0.52rem;
-  letter-spacing: 0.04em;
+  font-size: 0.48rem;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   transition: color var(--t-fast), background var(--t-fast);
+  padding: 0 2px;
 }
 
 .dock__item:hover {
