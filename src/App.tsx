@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useAuth } from './lib/auth';
+import { useAuth, getMe } from './lib/auth';
 import { syncSavedFromBE } from './lib/saved';
 import { AudioPlayerProvider } from './components/AudioPlayer';
 import { AppShell } from './components/AppShell';
@@ -15,12 +15,15 @@ import { ProfilePage } from './pages/profile';
 import { SettingsPage } from './pages/settings';
 import { LoginPage } from './pages/login';
 import { ResetPasswordPage } from './pages/reset-password';
+import { OnboardingPage } from './pages/onboarding';
 import { NotFoundPage } from './pages/not-found';
 
 function SyncOnLogin() {
-  const token = useAuth((s) => s.token);
+  const { token, setPrefs } = useAuth();
   useEffect(() => {
-    if (token) syncSavedFromBE();
+    if (!token) return;
+    syncSavedFromBE();
+    getMe().then((res) => setPrefs(res.preferences)).catch(() => {});
   }, [token]);
   return null;
 }
@@ -45,6 +48,7 @@ export function App() {
           </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
         </Routes>
       </BrowserRouter>
     </AudioPlayerProvider>

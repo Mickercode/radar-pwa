@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
-import { useAuth, login, signup, forgotPassword, verifyOtp, resendOtp } from '../lib/auth';
+import { useAuth, login, signup, forgotPassword, verifyOtp, resendOtp, getMe } from '../lib/auth';
 
 type Mode = 'login' | 'signup' | 'otp' | 'forgot';
 
@@ -70,7 +70,13 @@ export function LoginPage() {
       try {
         const res = await verifyOtp(trimmedEmail, code);
         setAuth(res.token, res.user);
-        navigate('/', { replace: true });
+        // New account — fetch prefs then send to onboarding if not done yet
+        try {
+          const me = await getMe();
+          navigate(me.preferences.onboardingDone ? '/' : '/onboarding', { replace: true });
+        } catch {
+          navigate('/onboarding', { replace: true });
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Invalid code');
       } finally { setLoading(false); }

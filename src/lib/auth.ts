@@ -16,10 +16,14 @@ export interface AuthUser {
 export interface AuthState {
   token: string | null;
   user: AuthUser | null;
+  interests: string[];
+  location: string | null;
+  onboardingDone: boolean;
   /** Hydrated from localStorage on app boot — starts false, becomes true after rehydrate. */
   hydrated: boolean;
   setAuth: (token: string, user: AuthUser) => void;
   clearAuth: () => void;
+  setPrefs: (prefs: { interests: string[]; location: string | null; onboardingDone: boolean }) => void;
 }
 
 // ── Store ───────────────────────────────────────────────────────────────────
@@ -29,15 +33,24 @@ export const useAuth = create<AuthState>()(
     (set) => ({
       token: null,
       user: null,
+      interests: [],
+      location: null,
+      onboardingDone: false,
       hydrated: false,
       setAuth: (token, user) => set({ token, user, hydrated: true }),
-      clearAuth: () => set({ token: null, user: null, hydrated: true }),
+      clearAuth: () => set({ token: null, user: null, interests: [], location: null, onboardingDone: false, hydrated: true }),
+      setPrefs: (prefs) => set(prefs),
     }),
     {
       name: 'radar:auth',
-      partialize: (state) => ({ token: state.token, user: state.user }),
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+        interests: state.interests,
+        location: state.location,
+        onboardingDone: state.onboardingDone,
+      }),
       onRehydrateStorage: () => (state) => {
-        // Mark hydrated after rehydrate completes
         if (state) state.hydrated = true;
       },
     },
@@ -170,6 +183,38 @@ export async function resendOtp(email: string): Promise<void> {
     const data = await res.json().catch(() => ({})) as { error?: string };
     throw new Error(data.error ?? `Resend failed (${res.status})`);
   }
+}
+
+export interface UserPreferences {
+  interests: string[];
+  location: string | null;
+  onboardingDone: boolean;
+}
+
+export async function getMe(): Promise<{ user: AuthUser; preferences: UserPreferences }> {
+  const token = getToken();
+  const res = await fetch(BASE + '/auth/me', {
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  if (!res.ok) throw new Error(`Failed to load profile (${res.status})`);
+  return res.json() as Promise<{ user: AuthUser; preferences: UserPreferences }>;
+}
+
+export async function updateInterests(
+  interests: string[],
+  location?: string,
+  onboardingDone?: boolean,
+): Promise<void> {
+  const token = getToken();
+  const res = await fetch(BASE + '/auth/interests', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ interests, location, onboardingDone }),
+  });
+  if (!res.ok) throw new Error(`Failed to update interests (${res.status})`);
 }
 
 export async function resetPassword(token: string, newPassword: string): Promise<void> {

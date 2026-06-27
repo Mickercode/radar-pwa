@@ -4,12 +4,19 @@ import { Icon } from '../components/Icon';
 import { usePwaInstall } from '../lib/usePwaInstall';
 import { useAuth, updateName, updatePassword, deleteAccount } from '../lib/auth';
 
+const INTEREST_LABELS: Record<string, string> = {
+  tech: 'Tech', business: 'Business', finance: 'Finance', politics: 'Politics',
+  science: 'Science', health: 'Health', climate: 'Climate', sports: 'Sports',
+  music: 'Music', film: 'Film & TV', education: 'Education', fashion: 'Fashion',
+  travel: 'Travel & Lifestyle', faith: 'Faith & Philosophy',
+};
+
 type Section = null | 'name' | 'password' | 'delete';
 
 export function SettingsPage() {
   const navigate = useNavigate();
   const { canInstall, install, isIOS, isStandalone, isInstalled } = usePwaInstall();
-  const { user, setAuth, clearAuth } = useAuth();
+  const { user, interests, setAuth, clearAuth } = useAuth();
 
   const [section, setSection] = useState<Section>(null);
   const [loading, setLoading] = useState(false);
@@ -197,6 +204,20 @@ export function SettingsPage() {
               </div>
             </form>
           )}
+
+          {/* ── Edit Interests ── */}
+          <div className="settings-row" onClick={() => navigate('/onboarding')}>
+            <div className="settings-row__icon"><Icon name="spark" size={18} /></div>
+            <div className="settings-row__body">
+              <span className="settings-row__label">Interests</span>
+              <span className="settings-row__value">
+                {interests.length > 0
+                  ? interests.slice(0, 3).map(i => INTEREST_LABELS[i] ?? i).join(', ') + (interests.length > 3 ? ` +${interests.length - 3}` : '')
+                  : 'Not set — tap to personalise'}
+              </span>
+            </div>
+            <Icon name="right" size={16} />
+          </div>
 
           {/* ── Delete Account ── */}
           <div className="settings-row settings-row--danger" onClick={() => section === 'delete' ? openSection(null) : openSection('delete')}>

@@ -4036,6 +4036,111 @@ a {
 .profile-prompt__btn { margin-top: 0.75rem; min-width: 160px; }
 .profile-prompt__sub { font-size: var(--step--1); color: var(--text-faint); margin-top: 0.25rem; }
 
+/* ── Onboarding / Interests picker ─────────── */
+.onboarding {
+  min-height: 100dvh;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top, 0) 1rem env(safe-area-inset-bottom, 0);
+}
+.onboarding__inner {
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem 0;
+}
+.onboarding__head { text-align: center; margin-bottom: 1.5rem; }
+.onboarding__logo { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.onboarding__title { font-family: var(--font-display); font-size: var(--step-3); font-weight: 800; color: var(--text); margin: 0 0 0.5rem; }
+.onboarding__sub { font-size: var(--step-0); color: var(--text-dim); line-height: 1.6; margin: 0; }
+
+.onboarding__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.625rem;
+  margin-bottom: 1.25rem;
+}
+.onboarding__chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast);
+  text-align: left;
+  position: relative;
+}
+.onboarding__chip:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+.onboarding__chip--active { border-color: var(--cyan); background: rgba(0,194,203,0.1); }
+.onboarding__chip-emoji { font-size: 1.25rem; flex: none; }
+.onboarding__chip-label { font-size: var(--step-0); font-weight: 600; color: var(--text); flex: 1; }
+.onboarding__chip-check {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--cyan);
+  background: rgba(0,194,203,0.2);
+  border-radius: 50%;
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  flex: none;
+}
+
+.onboarding__location {
+  font-size: var(--step--1);
+  color: var(--text-dim);
+  text-align: center;
+  margin: 0 0 1rem;
+}
+.onboarding__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.onboarding__cta { width: 100%; font-size: var(--step-0); }
+.onboarding__skip { font-size: var(--step--1); color: var(--text-faint); }
+
+/* ── Feed groups & location bar ─────────────── */
+.feed-groups { display: flex; flex-direction: column; gap: 1.5rem; }
+.feed-group__label {
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  margin: 0 0 0.625rem;
+  padding: 0 0.125rem;
+}
+.feed-location {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--step--1);
+  color: var(--text-faint);
+  padding: 0 0 0.625rem;
+}
+.feed-interest-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.625rem;
+  font-size: var(--step--1);
+  font-weight: 700;
+  color: var(--cyan);
+  background: rgba(0,194,203,0.1);
+  border: 1px solid rgba(0,194,203,0.25);
+  border-radius: var(--r-pill);
+  padding: 0.4rem 0.875rem;
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.feed-interest-cta:hover { background: rgba(0,194,203,0.18); }
+
 /* ── Settings page ─────────────────────────── */
 .settings-section {
   margin-bottom: 1.5rem;
