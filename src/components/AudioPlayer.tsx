@@ -128,12 +128,6 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     audioRef.current.currentTime = Math.max(0, Math.min(duration, audioRef.current.currentTime + secs));
   }, [duration]);
 
-  const seekTo = useCallback((seconds: number) => {
-    if (!audioRef.current) return;
-    audioRef.current.currentTime = Math.max(0, seconds);
-    setCurrentTime(audioRef.current.currentTime);
-  }, []);
-
   const changeSpeed = useCallback((s: number) => {
     setSpeed(s);
     if (audioRef.current) audioRef.current.playbackRate = s;

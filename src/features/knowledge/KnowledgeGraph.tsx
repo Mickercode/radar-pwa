@@ -90,6 +90,7 @@ export function KnowledgeGraph({ data, onSelect, activeId }: Props) {
     if (!canvas) return;
 
     function setup() {
+      if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       const w = rect.width || 400;
       const h = Math.max(300, rect.height || 500);

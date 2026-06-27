@@ -5,12 +5,13 @@ import { saveItem } from '../lib/saved';
 import type { ContentItem } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 
-type CaptureState = 'input' | 'loading' | 'result' | 'error' | 'saving';
+type CaptureState = 'input' | 'loading' | 'result' | 'error';
 
 export function CapturePage() {
   const navigate = useNavigate();
   const [url, setUrl]           = useState('');
   const [state, setState]       = useState<CaptureState>('input');
+  const [saving, setSaving]     = useState(false);
   const [result, setResult]     = useState<CapturedInsight | null>(null);
   const [error, setError]       = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,7 +47,7 @@ export function CapturePage() {
 
   const handleSaveToBrain = useCallback(() => {
     if (!result) return;
-    setState('saving');
+    setSaving(true);
 
     // Convert CapturedInsight → ContentItem → SavedItem
     const item: ContentItem = {
@@ -72,7 +73,7 @@ export function CapturePage() {
     };
 
     saveItem(item);
-    setState('result');
+    setSaving(false);
     // Flash saved confirmation, then navigate to brain
     setTimeout(() => navigate('/brain'), 1200);
   }, [result, navigate]);
@@ -260,8 +261,8 @@ export function CapturePage() {
             <button className="btn" onClick={handleTryAgain}>
               <Icon name="left" size={16} /> New capture
             </button>
-            <button className="btn btn--primary" onClick={handleSaveToBrain} disabled={state === 'saving'}>
-              {state === 'saving' ? (
+            <button className="btn btn--primary" onClick={handleSaveToBrain} disabled={saving}>
+              {saving ? (
                 <>Saving…</>
               ) : (
                 <><Icon name="brain" size={18} /> Save to Brain</>
@@ -272,7 +273,7 @@ export function CapturePage() {
       )}
 
       {/* ── SAVING overlay ── */}
-      {state === 'saving' && (
+      {saving && (
         <div className="capture-saved-overlay">
           <div className="capture-saved-card">
             <Icon name="check" size={32} />
