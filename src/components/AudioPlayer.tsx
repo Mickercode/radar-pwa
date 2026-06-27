@@ -19,12 +19,13 @@ interface PlayerCtx {
   resume: () => void;
   openPlayer: () => void;
   seekTo: (seconds: number) => void;
+  dismiss: () => void;
 }
 
 const PlayerContext = createContext<PlayerCtx>({
   track: null, playing: false,
   play: () => {}, pause: () => {}, resume: () => {}, openPlayer: () => {},
-  seekTo: () => {},
+  seekTo: () => {}, dismiss: () => {},
 });
 
 export function usePlayer() { return useContext(PlayerContext); }
@@ -78,9 +79,15 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     setExpanded(true);
   }, [track, speed]);
 
-  const pause  = useCallback(() => { audioRef.current?.pause(); setPlaying(false); }, []);
-  const resume = useCallback(() => { audioRef.current?.play().catch(() => {}); setPlaying(true); }, []);
+  const pause   = useCallback(() => { audioRef.current?.pause(); setPlaying(false); }, []);
+  const resume  = useCallback(() => { audioRef.current?.play().catch(() => {}); setPlaying(true); }, []);
   const openPlayer = useCallback(() => setExpanded(true), []);
+  const dismiss = useCallback(() => {
+    audioRef.current?.pause();
+    setPlaying(false);
+    setTrack(null);
+    setExpanded(false);
+  }, []);
 
   const seekTo = useCallback((seconds: number) => {
     if (!audioRef.current || !Number.isFinite(seconds)) return;
@@ -136,7 +143,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <PlayerContext.Provider value={{ track, playing, play, pause, resume, openPlayer, seekTo }}>
+    <PlayerContext.Provider value={{ track, playing, play, pause, resume, openPlayer, seekTo, dismiss }}>
       {children}
 
       {/* ── Full-screen player ─────────────────────── */}
@@ -234,7 +241,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      {/* ── Mini bar (shows when minimised) ────────── */}
+      {/* ── Mini bar (floating pill above dock) ────── */}
       {track && !expanded && (
         <div className="audio-player" onClick={() => setExpanded(true)} role="button" tabIndex={0}>
           <div className="audio-player__progress-bar">
@@ -243,14 +250,13 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
           <div className="audio-player__row">
             {track.artwork
               ? <img src={track.artwork} alt="" className="audio-player__art" />
-              : <div className="audio-player__art audio-player__art--ph"><Icon name="headphones" size={16} /></div>
+              : <div className="audio-player__art audio-player__art--ph"><Icon name="headphones" size={14} /></div>
             }
             <div className="audio-player__info">
               <p className="audio-player__title">{track.title}</p>
               <p className="audio-player__source">{track.source}</p>
             </div>
             <div className="audio-player__controls" onClick={e => e.stopPropagation()}>
-              <span className="audio-player__time">{fmt(currentTime)}</span>
               <button
                 className="audio-player__play"
                 onClick={playing ? pause : resume}
@@ -259,9 +265,16 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
               >
                 {loading ? <span className="audio-player__loading" /> :
                   playing
-                    ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                    : <Icon name="play" size={18} />
+                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    : <Icon name="play" size={16} />
                 }
+              </button>
+              <button
+                className="audio-player__close"
+                onClick={e => { e.stopPropagation(); dismiss(); }}
+                aria-label="Dismiss player"
+              >
+                <Icon name="x" size={14} />
               </button>
             </div>
           </div>
