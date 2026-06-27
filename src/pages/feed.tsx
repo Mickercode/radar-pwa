@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '../components/Icon';
-import { type ContentItem, type Topic, api } from '../lib/api';
+import { type ContentItem, api } from '../lib/api';
 import { saveItem, unsaveItem, isSaved } from '../lib/saved';
 import { SummarySheet } from '../components/SummarySheet';
+
+type Filter = 'all' | 'news' | 'podcast' | 'clip';
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'all',     label: 'All'      },
+  { key: 'podcast', label: 'Podcasts' },
+  { key: 'news',    label: 'News'     },
+  { key: 'clip',    label: 'Clips'    },
+];
 
 function timeAgo(iso: string): string {
   const h = (Date.now() - new Date(iso).getTime()) / 3_600_000;
@@ -17,16 +26,11 @@ function formatDuration(secs: number): string {
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : secs < 60 ? `${secs}s` : `${m}m`;
 }
 
-// ── Content Card ─────────────────────────────────────────────────────────────
+// ── Grid Card ────────────────────────────────────────────────────────────────
 
-interface CardProps {
-  item: ContentItem;
-  onDetail: (item: ContentItem) => void;
-}
-
-function ContentCard({ item, onDetail }: CardProps) {
+function FeedCard({ item, onDetail }: { item: ContentItem; onDetail: (i: ContentItem) => void }) {
   const [saved, setSaved] = useState(() => isSaved(item.id));
-  const takeaway = item.summary?.keyTakeaways?.[0];
+  const isMustSee = (item.summary?.nigeriaRelevance ?? 0) >= 2 || (item.summary?.tier ?? 3) === 1;
 
   function toggleSave(e: React.MouseEvent) {
     e.stopPropagation();
@@ -35,39 +39,42 @@ function ContentCard({ item, onDetail }: CardProps) {
   }
 
   return (
-    <article className="fcard" onClick={() => onDetail(item)}>
-      <div className="fcard__body">
-        <div className="fcard__meta">
-          <span className={`fcard__type fcard__type--${item.type}`}>
-            {item.type === 'podcast' && <Icon name="headphones" size={10} />}
-            {item.type === 'clip' && <Icon name="play" size={10} />}
-            {item.type === 'news' && <Icon name="feed" size={10} />}
-            {item.type}
-          </span>
-          <span className="fcard__source">{item.source}</span>
-          <span className="fcard__dot">·</span>
-          <span className="fcard__time">{timeAgo(item.createdAt)}</span>
-          {item.duration > 0 && (
-            <><span className="fcard__dot">·</span><span>{formatDuration(item.duration)}</span></>
-          )}
-        </div>
-
-        <h2 className="fcard__title">{item.title}</h2>
-
-        {takeaway && <p className="fcard__preview">{takeaway}</p>}
-      </div>
-
-      <div className="fcard__right">
-        {item.thumbnailUrl && (
-          <img src={item.thumbnailUrl} alt="" className="fcard__thumb" loading="lazy" />
-        )}
+    <article className="gcard" onClick={() => onDetail(item)}>
+      {/* Thumbnail */}
+      <div className="gcard__thumb">
+        {item.thumbnailUrl
+          ? <img src={item.thumbnailUrl} alt="" loading="lazy" />
+          : <div className="gcard__no-thumb"><Icon name={item.type === 'podcast' ? 'headphones' : item.type === 'clip' ? 'play' : 'feed'} size={32} /></div>
+        }
+        {/* Overlays */}
+        <span className={`gcard__badge gcard__badge--${item.type}`}>
+          {item.type.toUpperCase()}
+        </span>
+        {isMustSee && <span className="gcard__must">★ Must-See</span>}
         <button
-          className={`fcard__save icon-btn${saved ? ' save-active' : ''}`}
+          className={`gcard__save icon-btn${saved ? ' save-active' : ''}`}
           onClick={toggleSave}
           aria-label={saved ? 'Unsave' : 'Save'}
         >
-          <Icon name="bookmark" size={17} />
+          <Icon name="bookmark" size={16} />
         </button>
+      </div>
+
+      {/* Body */}
+      <div className="gcard__body">
+        <h2 className="gcard__title">{item.title}</h2>
+        {item.summary?.what && (
+          <p className="gcard__desc">{item.summary.what}</p>
+        )}
+        {!item.summary?.what && item.summary?.summary && (
+          <p className="gcard__desc">{item.summary.summary}</p>
+        )}
+        <div className="gcard__foot">
+          <span className="gcard__source">{item.source}</span>
+          {item.duration > 0 && <><span className="gcard__dot">·</span><span>{formatDuration(item.duration)}</span></>}
+          <span className="gcard__dot">·</span>
+          <span className="gcard__time">{timeAgo(item.createdAt)}</span>
+        </div>
       </div>
     </article>
   );
@@ -76,66 +83,60 @@ function ContentCard({ item, onDetail }: CardProps) {
 // ── Feed Page ────────────────────────────────────────────────────────────────
 
 export function FeedPage() {
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [activeTopic, setActiveTopic] = useState('');
-  const [items, setItems] = useState<ContentItem[]>([]);
+  const [all, setAll]         = useState<ContentItem[]>([]);
+  const [filter, setFilter]   = useState<Filter>('all');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [detail, setDetail] = useState<ContentItem | null>(null);
+  const [error, setError]     = useState<string | null>(null);
+  const [detail, setDetail]   = useState<ContentItem | null>(null);
 
   useEffect(() => {
-    api.topics().then(setTopics).catch(() => {});
+    api.feed([])
+      .then(r => { setAll(r.items); setLoading(false); })
+      .catch(() => { setError('Could not load feed.'); setLoading(false); });
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    const topicObj = topics.find(t => t.slug === activeTopic);
-    api.feed(topicObj ? [topicObj.id] : [])
-      .then(r => { setItems(r.items); setLoading(false); })
-      .catch(() => { setError('Could not load feed.'); setLoading(false); });
-  }, [activeTopic, topics]);
-
-  const displayTopics = [{ slug: '', label: 'For You' }, ...topics.map(t => ({ slug: t.slug, label: t.name }))];
+  const items = filter === 'all' ? all : all.filter(i => i.type === filter);
 
   return (
     <div className="feed-page">
-      {/* Topic tabs */}
-      <div className="feed-tabs-wrap">
-        <div className="feed-tabs">
-          {displayTopics.map(t => (
-            <button
-              key={t.slug}
-              className={`feed-tab${activeTopic === t.slug ? ' feed-tab--active' : ''}`}
-              onClick={() => setActiveTopic(t.slug)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      {/* Page header */}
+      <div className="feed-head">
+        <p className="feed-kicker">Today on Radar</p>
+        <h1 className="feed-headline">Your feed</h1>
+        <p className="feed-sub">The signals worth understanding — ranked for you.</p>
       </div>
 
-      <div className="feed-content">
+      {/* Filter chips */}
+      <div className="feed-chips">
+        {FILTERS.map(f => (
+          <button
+            key={f.key}
+            className={`feed-chip${filter === f.key ? ' feed-chip--active' : ''}`}
+            onClick={() => setFilter(f.key)}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Grid */}
+      <div className="feed-scroll">
         {loading && (
           <div className="feed-loading"><div className="feed-spinner" /><p>Loading your feed…</p></div>
         )}
         {!loading && error && (
-          <div className="empty">
-            <Icon name="feed" size={48} />
-            <h3>Could not load feed</h3>
-            <p>{error}</p>
-          </div>
+          <div className="empty"><Icon name="feed" size={48} /><h3>Could not load feed</h3><p>{error}</p></div>
         )}
         {!loading && !error && items.length === 0 && (
-          <div className="empty">
-            <Icon name="feed" size={48} />
-            <h3>No content yet</h3>
-            <p>The feed is being updated. Check back soon.</p>
+          <div className="empty"><Icon name="feed" size={48} /><h3>No content yet</h3><p>The feed is being updated. Check back soon.</p></div>
+        )}
+        {!loading && !error && items.length > 0 && (
+          <div className="feed-grid">
+            {items.map(item => (
+              <FeedCard key={item.id} item={item} onDetail={setDetail} />
+            ))}
           </div>
         )}
-        {!loading && !error && items.map(item => (
-          <ContentCard key={item.id} item={item} onDetail={setDetail} />
-        ))}
       </div>
 
       {detail && <SummarySheet item={detail} onClose={() => setDetail(null)} />}
