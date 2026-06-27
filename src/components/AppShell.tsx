@@ -3,45 +3,38 @@ import { PwaInstall } from './PwaInstall';
 import { Icon } from './Icon';
 
 const navItems = [
-  { to: '/', icon: 'feed' as const, label: 'Feed' },
-  { to: '/capture', icon: 'capture' as const, label: 'Capture' },
-  { to: '/knowledge', icon: 'bookmark' as const, label: 'Saved' },
-  { to: '/notebook', icon: 'notebook' as const, label: 'Notes' },
-  { to: '/brain', icon: 'brain' as const, label: 'Brain' },
-  { to: '/profile', icon: 'profile' as const, label: 'Profile' },
+  { to: '/',          icon: 'feed'       as const, label: 'Feed'     },
+  { to: '/clips',     icon: 'play'       as const, label: 'Clips'    },
+  { to: '/podcasts',  icon: 'headphones' as const, label: 'Podcasts' },
+  { to: '/capture',   icon: 'capture'    as const, label: 'Capture'  },
+  { to: '/brain',     icon: 'brain'      as const, label: 'Brain'    },
+  { to: '/profile',   icon: 'profile'    as const, label: 'You'      },
 ] as const;
 
 export function AppShell() {
   return (
     <div className="shell">
-      {/* Top navigation bar */}
       <nav className="nav">
         <div className="nav__brand">
-          <img
-            src="/assets/logo-icon.jpeg"
-            alt="Radar"
-            className="nav__logo"
-            width={52}
-            height={52}
-          />
+          <img src="/assets/logo-icon.jpeg" alt="Radar" className="nav__logo" width={52} height={52} />
         </div>
         <div className="nav__spacer" />
+        <NavLink to="/saved" className="icon-btn" aria-label="Saved">
+          <Icon name="bookmark" size={20} />
+        </NavLink>
         <NavLink to="/settings" className="icon-btn" aria-label="Settings">
           <Icon name="settings" size={20} />
         </NavLink>
       </nav>
 
-      {/* Main content area */}
       <main className="shell__main">
         <Outlet />
       </main>
 
-      {/* PWA install prompt - centered and visible */}
       <PwaInstall />
 
-      {/* Bottom dock navigation */}
       <nav className="dock" role="navigation" aria-label="Main navigation">
-        {navItems.map((item) => (
+        {navItems.map(item => (
           <NavLink
             key={item.to}
             to={item.to}
