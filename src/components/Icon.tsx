@@ -128,6 +128,32 @@ const icons = {
       <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     </svg>
   ),
+  user: (p: SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <circle cx="12" cy="8" r="4" /><path d="M20 21a8 8 0 0 0-16 0" />
+    </svg>
+  ),
+  lock: (p: SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  ),
+  down: (p: SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  ),
+  radar: (p: SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M19.07 4.93A10 10 0 0 1 21 12" /><path d="M15.54 8.46A5 5 0 0 1 17 12" /><circle cx="12" cy="12" r="1" />
+      <path d="m4.93 4.93 14.14 14.14" /><path d="M4.93 19.07A10 10 0 0 1 3 12" /><path d="M8.46 15.54A5 5 0 0 1 7 12" />
+    </svg>
+  ),
+  pause: (p: SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24" fill="currentColor" {...p}>
+      <rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />
+    </svg>
+  ),
 } as const;
 
 export type IconName = keyof typeof icons;

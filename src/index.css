@@ -4036,6 +4036,124 @@ a {
 .profile-prompt__btn { margin-top: 0.75rem; min-width: 160px; }
 .profile-prompt__sub { font-size: var(--step--1); color: var(--text-faint); margin-top: 0.25rem; }
 
+/* ── Settings page ─────────────────────────── */
+.settings-section {
+  margin-bottom: 1.5rem;
+}
+.settings-section-label {
+  font-size: var(--step--1);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  padding: 0 0.25rem 0.5rem;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: background var(--t-fast);
+  user-select: none;
+}
+.settings-row:hover { background: var(--bg-hover); }
+.settings-row--danger { color: var(--coral); border-color: rgba(251, 113, 133, 0.2); }
+.settings-row--danger:hover { background: rgba(251, 113, 133, 0.08); }
+.settings-row__icon {
+  width: 36px; height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--bg-2);
+  display: grid; place-items: center;
+  flex: none;
+}
+.settings-row--danger .settings-row__icon { background: rgba(251, 113, 133, 0.12); }
+.settings-row__body { flex: 1; min-width: 0; }
+.settings-row__label { display: block; font-size: var(--step-0); font-weight: 600; }
+.settings-row__value { display: block; font-size: var(--step--1); color: var(--text-faint); margin-top: 0.1rem; }
+
+.settings-panel {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.settings-panel--danger {
+  border-color: rgba(251, 113, 133, 0.25);
+}
+.settings-panel__warn {
+  font-size: var(--step--1);
+  color: var(--coral);
+  line-height: 1.5;
+  margin: 0;
+}
+.settings-panel__row {
+  display: flex;
+  gap: 0.625rem;
+  justify-content: flex-end;
+}
+
+/* Danger input tint */
+.auth-input--danger { border-color: rgba(251, 113, 133, 0.4); }
+.auth-input--danger:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(251,113,133,0.15); }
+
+/* Danger button */
+.btn--danger {
+  background: var(--coral);
+  color: #1a0a0e;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 0.6rem 1.25rem;
+  font-weight: 700;
+  font-size: var(--step--1);
+  cursor: pointer;
+  transition: opacity var(--t-fast);
+}
+.btn--danger:hover { opacity: 0.88; }
+.btn--danger:disabled { opacity: 0.5; pointer-events: none; }
+
+/* Ghost button */
+.btn--ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  padding: 0.6rem 1.25rem;
+  font-weight: 600;
+  font-size: var(--step--1);
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+.btn--ghost:hover { background: var(--bg-hover); }
+
+/* ── OTP input style ────────────────────────── */
+.auth-input--otp {
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  font-family: var(--font-mono);
+  padding: 0.75rem;
+}
+.auth-otp-hint {
+  font-size: var(--step--1);
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0 0 0.25rem;
+  text-align: center;
+}
+.auth-otp-hint strong { color: var(--text); }
+.auth-link--dim { opacity: 0.45; cursor: not-allowed; }
+
 /* ── Reduced motion ────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,

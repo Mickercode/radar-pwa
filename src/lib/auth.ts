@@ -76,17 +76,22 @@ export async function login(email: string, password: string): Promise<AuthRespon
   return res.json() as Promise<AuthResponse>;
 }
 
-export async function signup(email: string, password: string, name?: string): Promise<AuthResponse> {
+/** Initiates signup — returns `{ pendingEmail }`. Follow up with verifyOtp(). */
+export async function signup(
+  email: string,
+  password: string,
+  name?: string,
+): Promise<{ pendingEmail: string }> {
   const res = await fetch(BASE + '/auth/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, ...(name ? { name } : {}) }),
   });
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(text || `Signup failed (${res.status})`);
+    const data = await res.json().catch(() => ({})) as { error?: string; message?: string };
+    throw new Error(data.error ?? data.message ?? `Signup failed (${res.status})`);
   }
-  return res.json() as Promise<AuthResponse>;
+  return res.json() as Promise<{ pendingEmail: string }>;
 }
 
 export async function updateName(name: string): Promise<{ user: AuthUser }> {
@@ -140,4 +145,41 @@ export async function deleteAccount(): Promise<void> {
     },
   });
   if (!res.ok) throw new Error(`Failed to delete account (${res.status})`);
+}
+
+export async function verifyOtp(email: string, otp: string): Promise<AuthResponse> {
+  const res = await fetch(BASE + '/auth/verify-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string; message?: string };
+    throw new Error(data.error ?? data.message ?? `Verification failed (${res.status})`);
+  }
+  return res.json() as Promise<AuthResponse>;
+}
+
+export async function resendOtp(email: string): Promise<void> {
+  const res = await fetch(BASE + '/auth/resend-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(data.error ?? `Resend failed (${res.status})`);
+  }
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const res = await fetch(BASE + '/auth/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, newPassword }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string; message?: string };
+    throw new Error(data.error ?? data.message ?? `Reset failed (${res.status})`);
+  }
 }
