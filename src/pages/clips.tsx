@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '../components/Icon';
 import { api, type ContentItem } from '../lib/api';
-import { SummarySheet } from '../components/SummarySheet';
+import { DetailView } from '../components/DetailView';
 
 function formatDuration(secs: number): string {
   if (!secs) return '';
@@ -71,7 +71,7 @@ export function ClipsPage() {
       </div>
 
       {selected && (
-        <SummarySheet item={selected} onClose={() => setSelected(null)} />
+        <DetailView item={selected} onClose={() => setSelected(null)} />
       )}
     </div>
   );

@@ -160,7 +160,7 @@ export function NotebookPage() {
           title={confirmDelete ? 'Tap again to delete' : 'Delete note'}
         >
           <Icon name="trash" size={18} />
-          {confirmDelete && <span className="nb__delete-label">Delete?</span>}
+          {confirmDelete && <span className="nb__delete-tip" aria-hidden>Delete?</span>}
         </button>
       </div>
 

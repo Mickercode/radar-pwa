@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Icon } from '../components/Icon';
 import { getSavedItems, type SavedItem } from '../lib/saved';
 import { DetailView } from '../components/DetailView';
 import type { ContentItem } from '../lib/api';
+import { buildGraph } from '../lib/graph';
+import { KnowledgeGraph } from '../features/knowledge/KnowledgeGraph';
 
 type Tab = 'web' | 'reminders' | 'checkin';
 
@@ -32,12 +34,16 @@ function relTime(iso: string) {
   return `${d}d ago`;
 }
 
+type WebView = 'graph' | 'list';
+
 export function BrainPage() {
   const [tab, setTab]             = useState<Tab>('web');
   const [checkinTab, setCheckinTab] = useState<'weekly'|'monthly'|'quarterly'>('weekly');
   const [search, setSearch]       = useState('');
   const [detail, setDetail]       = useState<ContentItem | null>(null);
+  const [webView, setWebView]     = useState<WebView>('list');
   const saved = getSavedItems();
+  const graphData = useMemo(() => buildGraph(saved), [saved]);
 
   const filtered = search.trim()
     ? saved.filter(s =>
@@ -66,15 +72,49 @@ export function BrainPage() {
       {/* ── KNOWLEDGE WEB ── */}
       {tab === 'web' && (
         <div className="brain-content">
+          {/* Stats bar */}
           <div className="brain-stats">
             <div className="brain-stat"><span className="brain-stat__n">{saved.length}</span><span className="brain-stat__l">Saved</span></div>
             <div className="brain-stat"><span className="brain-stat__n">{new Set(saved.map(s=>s.type)).size}</span><span className="brain-stat__l">Types</span></div>
             <div className="brain-stat"><span className="brain-stat__n">{saved.reduce((a,s)=>a+s.keyTakeaways.length,0)}</span><span className="brain-stat__l">Insights</span></div>
+            <div className="brain-stat"><span className="brain-stat__n">{graphData.edges.length}</span><span className="brain-stat__l">Links</span></div>
           </div>
 
-          <div className="brain-search-wrap">
-            <Icon name="search" size={15} className="brain-search-icon" />
-            <input className="brain-search" placeholder='Ask your knowledge — e.g. "fintech in Nigeria"' value={search} onChange={e=>setSearch(e.target.value)} />
+          {/* View toggle + search */}
+          <div className="brain-controls">
+            {saved.length > 0 && (
+              <div className="brain-view-toggle">
+                <button
+                  className={`brain-view-btn${webView === 'graph' ? ' brain-view-btn--active' : ''}`}
+                  onClick={() => setWebView('graph')}
+                  aria-label="Graph view"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                    <circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/>
+                    <line x1="12" y1="7.5" x2="5" y2="16.5"/><line x1="12" y1="7.5" x2="19" y2="16.5"/>
+                  </svg>
+                  Graph
+                </button>
+                <button
+                  className={`brain-view-btn${webView === 'list' ? ' brain-view-btn--active' : ''}`}
+                  onClick={() => setWebView('list')}
+                  aria-label="List view"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                  </svg>
+                  List
+                </button>
+              </div>
+            )}
+
+            {webView === 'list' && (
+              <div className="brain-search-wrap">
+                <Icon name="search" size={15} className="brain-search-icon" />
+                <input className="brain-search" placeholder='Ask your knowledge — e.g. "fintech in Nigeria"' value={search} onChange={e=>setSearch(e.target.value)} />
+              </div>
+            )}
           </div>
 
           {saved.length === 0 ? (
@@ -82,6 +122,16 @@ export function BrainPage() {
               <Icon name="brain" size={48} />
               <h3>Your web is empty</h3>
               <p>Save articles, podcasts and clips from your Feed. They appear here and get automatically connected.</p>
+            </div>
+          ) : webView === 'graph' ? (
+            <div className="brain-graph-wrap">
+              <KnowledgeGraph
+                data={graphData}
+                onSelect={(id) => {
+                  const item = saved.find(s => s.id === id);
+                  if (item) setDetail(savedToContent(item));
+                }}
+              />
             </div>
           ) : filtered.length === 0 ? (
             <div className="empty" style={{marginTop:'2rem'}}>

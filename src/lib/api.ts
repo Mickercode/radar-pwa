@@ -1,11 +1,33 @@
 // Typed API client for the Radar backend.
+import { getToken, clearAuth as clearAuthStore } from './auth';
+
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+
+/** Build headers, injecting the Bearer token when available. */
+function authHeaders(): Record<string, string> {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+/** Handle 401 responses — clear auth and redirect to login. */
+function handleAuthError(status: number): void {
+  if (status === 401) {
+    clearAuthStore();
+    // Redirect to login if not already there
+    if (window.location.pathname !== '/login') {
+      window.location.pathname = '/login';
+    }
+  }
+}
 
 async function get<T>(path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(BASE + path, window.location.origin);
   if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`API ${res.status}: ${path}`);
+  const res = await fetch(url.toString(), { headers: authHeaders() });
+  if (!res.ok) {
+    handleAuthError(res.status);
+    throw new Error(`API ${res.status}: ${path}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -54,6 +76,59 @@ export interface FeedResult {
   matchedTopics: number;
 }
 
+// ── Podcast Index types (mirrors the backend return shape) ─────────────────────
+
+export interface PodcastFeed {
+  id: number;
+  title: string;
+  url: string;
+  image: string;
+  description: string;
+  author?: string;
+  language: string;
+  categories?: Record<string, string>;
+  itunesId?: number;
+}
+
+export interface PodcastEpisode {
+  id: number;
+  title: string;
+  enclosureUrl: string;
+  enclosureType: string;
+  description: string;
+  duration: number;
+  datePublished: number;
+  feedId: number;
+  feedTitle: string;
+  feedImage?: string;
+}
+
+interface PodcastSearchResult {
+  status: boolean;
+  feeds: PodcastFeed[];
+  count: number;
+}
+
+interface EpisodeResult {
+  status: boolean;
+  items: PodcastEpisode[];
+  count: number;
+}
+
+// ── Capture types ────────────────────────────────────────────────────────────
+
+export interface CapturedInsight {
+  sourceUrl: string;
+  title: string;
+  what: string;
+  keyTakeaways: string[];
+  why: string;
+  howItMattersToYou: string;
+  glossary: string[];
+  tier: 1 | 2 | 3;
+  nigeriaRelevance: 0 | 1 | 2 | 3;
+}
+
 // ── Endpoints ──────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -68,4 +143,25 @@ export const api = {
 
   contentByType: (type: 'news' | 'podcast' | 'clip') =>
     get<ContentItem[]>('/content', { type }),
+
+  searchPodcasts: (q: string, max = 20) =>
+    get<PodcastSearchResult>('/podcasts/search', { q, max: String(max) }),
+
+  podcastEpisodes: (feedId: number, max = 20) =>
+    get<EpisodeResult>(`/podcasts/${feedId}/episodes`, { max: String(max) }),
+
+  podcastEpisodesByFeedUrl: (url: string, max = 20) =>
+    get<EpisodeResult>('/podcasts/by-feed-url/episodes', { url, max: String(max) }),
+
+  capture: (url: string) => {
+    const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+    return fetch(BASE + '/capture', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ url }),
+    }).then(async (res) => {
+      if (!res.ok) throw new Error(`Capture ${res.status}: ${await res.text().catch(() => '')}`);
+      return res.json() as Promise<CapturedInsight>;
+    });
+  },
 };

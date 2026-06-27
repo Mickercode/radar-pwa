@@ -48,7 +48,7 @@ function buildChapters(durationSecs: number) {
 export function DetailView({ item, onClose }: Props) {
   const s = item.summary;
   const [saved, setSaved]     = useState(() => isSaved(item.id));
-  const { play, pause, resume, track, playing, openPlayer } = usePlayer();
+  const { play, pause, resume, track, playing, openPlayer, seekTo } = usePlayer();
 
   const isPlayingThis = track?.contentId === item.id && playing;
   const isPodcast = item.type === 'podcast';
@@ -62,7 +62,7 @@ export function DetailView({ item, onClose }: Props) {
   function handlePlay(startAt?: number) {
     if (!item.audioUrl) return;
     if (track?.contentId === item.id) {
-      if (startAt !== undefined && audioEl()) { audioEl()!.currentTime = startAt; }
+      if (startAt !== undefined) seekTo(startAt);
       playing ? pause() : resume();
     } else {
       play({ src: item.audioUrl, title: item.title, source: item.source, contentId: item.id, artwork: item.thumbnailUrl });
@@ -76,11 +76,6 @@ export function DetailView({ item, onClose }: Props) {
     } else {
       openPlayer();
     }
-  }
-
-  function audioEl(): HTMLAudioElement | null {
-    // access via the global Audio element stored in the provider – best-effort
-    return document.querySelector('audio') ?? null;
   }
 
   function handleShare() {

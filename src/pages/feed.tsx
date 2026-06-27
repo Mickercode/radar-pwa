@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Icon } from '../components/Icon';
 import { type ContentItem, api } from '../lib/api';
 import { saveItem, unsaveItem, isSaved } from '../lib/saved';
-import { SummarySheet } from '../components/SummarySheet';
+import { DetailView } from '../components/DetailView';
 
 type Filter = 'all' | 'news' | 'podcast' | 'clip';
 
@@ -139,7 +139,7 @@ export function FeedPage() {
         )}
       </div>
 
-      {detail && <SummarySheet item={detail} onClose={() => setDetail(null)} />}
+      {detail && <DetailView item={detail} onClose={() => setDetail(null)} />}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { NotebookPage } from './pages/notebook';
 import { KnowledgePage } from './pages/knowledge';
 import { ProfilePage } from './pages/profile';
 import { SettingsPage } from './pages/settings';
+import { LoginPage } from './pages/login';
 import { NotFoundPage } from './pages/not-found';
 
 export function App() {
@@ -29,6 +30,7 @@ export function App() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
       </BrowserRouter>
     </AudioPlayerProvider>

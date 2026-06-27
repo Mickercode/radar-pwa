@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '../components/Icon';
-import { api, type ContentItem, type Topic } from '../lib/api';
+import { api, type ContentItem, type Topic, type PodcastFeed } from '../lib/api';
 import { usePlayer } from '../components/AudioPlayer';
 import { DetailView } from '../components/DetailView';
+import { PodcastSearch } from '../features/podcasts/PodcastSearch';
+import { PodcastDetail } from '../features/podcasts/PodcastDetail';
+
+type Tab = 'browse' | 'discover';
 
 const CATEGORY_COLORS: Record<string, string> = {
   technology: '#00c2cb',
@@ -29,13 +33,14 @@ function formatDuration(secs: number): string {
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
 }
 
-export function PodcastsPage() {
+// ── Browse (ingested podcasts grouped by topic) ──────────────────────────────
+
+function BrowseView({ onSelect }: { onSelect: (item: ContentItem) => void }) {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<ContentItem | null>(null);
   const { play, pause, resume, track, playing } = usePlayer();
 
   useEffect(() => {
@@ -46,7 +51,6 @@ export function PodcastsPage() {
 
   function handleSearch() { setQuery(search.trim()); }
 
-  // Filter by search query
   const filtered = query
     ? items.filter(i =>
         i.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -54,7 +58,6 @@ export function PodcastsPage() {
       )
     : items;
 
-  // Group by topic
   const topicMap = Object.fromEntries(topics.map(t => [t.id, t]));
   const grouped: { topic: Topic | null; slug: string; items: ContentItem[] }[] = [];
   const seen = new Set<string>();
@@ -79,12 +82,8 @@ export function PodcastsPage() {
     }
   }
 
-  if (selected) {
-    return <DetailView item={selected} onClose={() => setSelected(null)} />;
-  }
-
   return (
-    <div className="pod-page">
+    <>
       {/* Search */}
       <div className="pod-search-row">
         <div className="pod-search-wrap">
@@ -92,7 +91,7 @@ export function PodcastsPage() {
           <input
             className="pod-search"
             type="search"
-            placeholder="Search any podcast…"
+            placeholder="Search episodes…"
             value={search}
             onChange={e => setSearch(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -103,8 +102,8 @@ export function PodcastsPage() {
 
       {/* Header */}
       <div className="pod-header">
-        <h1 className="pod-title">Discover Podcasts</h1>
-        <p className="pod-subtitle">Browse curated picks. Tap an episode to listen instantly.</p>
+        <h1 className="pod-title">Browse Podcasts</h1>
+        <p className="pod-subtitle">Curated picks from your feed. Tap to play instantly.</p>
       </div>
 
       {loading && (
@@ -115,11 +114,10 @@ export function PodcastsPage() {
         <div className="empty">
           <Icon name="headphones" size={48} />
           <h3>{query ? 'No results' : 'No podcasts yet'}</h3>
-          <p>{query ? `No podcasts matched "${query}".` : 'Check back after the next ingest run.'}</p>
+          <p>{query ? `No episodes matched "${query}".` : 'Check back after the next ingest run.'}</p>
         </div>
       )}
 
-      {/* Grouped list */}
       <div className="pod-scroll">
         {grouped.map(({ topic, slug, items: groupItems }) => (
           <div key={topic?.id ?? 'none'} className="pod-group">
@@ -133,7 +131,7 @@ export function PodcastsPage() {
                 <div
                   key={item.id}
                   className={`pod-row${track?.contentId === item.id ? ' pod-row--active' : ''}`}
-                  onClick={() => setSelected(item)}
+                  onClick={() => onSelect(item)}
                 >
                   <div className="pod-row__art">
                     {item.thumbnailUrl
@@ -141,7 +139,6 @@ export function PodcastsPage() {
                       : <div className="pod-row__art-ph"><Icon name="headphones" size={22} /></div>
                     }
                   </div>
-
                   <div className="pod-row__body">
                     <p className="pod-row__title">{item.title}</p>
                     <p className="pod-row__source">{item.source}</p>
@@ -152,7 +149,6 @@ export function PodcastsPage() {
                       <p className="pod-row__dur">{formatDuration(item.duration)}</p>
                     )}
                   </div>
-
                   {item.audioUrl && (
                     <button
                       className={`pod-row__play${track?.contentId === item.id && playing ? ' pod-row__play--on' : ''}`}
@@ -171,6 +167,56 @@ export function PodcastsPage() {
           </div>
         ))}
       </div>
+    </>
+  );
+}
+
+// ── Discover (Podcast Index search + episode browser) ────────────────────────
+
+function DiscoverView() {
+  const [selectedFeed, setSelectedFeed] = useState<PodcastFeed | null>(null);
+
+  if (selectedFeed) {
+    return (
+      <PodcastDetail feed={selectedFeed} onBack={() => setSelectedFeed(null)} />
+    );
+  }
+
+  return <PodcastSearch onSelect={setSelectedFeed} />;
+}
+
+// ── Podcasts Page ────────────────────────────────────────────────────────────
+
+export function PodcastsPage() {
+  const [tab, setTab] = useState<Tab>('browse');
+  const [detail, setDetail] = useState<ContentItem | null>(null);
+
+  if (detail) {
+    return <DetailView item={detail} onClose={() => setDetail(null)} />;
+  }
+
+  return (
+    <div className="pod-page">
+      {/* Tab bar */}
+      <div className="pod-page-tabs">
+        <button
+          className={`pod-page-tab${tab === 'browse' ? ' pod-page-tab--active' : ''}`}
+          onClick={() => setTab('browse')}
+        >
+          <Icon name="feed" size={16} />
+          Browse
+        </button>
+        <button
+          className={`pod-page-tab${tab === 'discover' ? ' pod-page-tab--active' : ''}`}
+          onClick={() => setTab('discover')}
+        >
+          <Icon name="search" size={16} />
+          Discover
+        </button>
+      </div>
+
+      {tab === 'browse' && <BrowseView onSelect={setDetail} />}
+      {tab === 'discover' && <DiscoverView />}
     </div>
   );
 }

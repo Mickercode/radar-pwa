@@ -18,11 +18,13 @@ interface PlayerCtx {
   pause: () => void;
   resume: () => void;
   openPlayer: () => void;
+  seekTo: (seconds: number) => void;
 }
 
 const PlayerContext = createContext<PlayerCtx>({
   track: null, playing: false,
   play: () => {}, pause: () => {}, resume: () => {}, openPlayer: () => {},
+  seekTo: () => {},
 });
 
 export function usePlayer() { return useContext(PlayerContext); }
@@ -80,6 +82,12 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   const resume = useCallback(() => { audioRef.current?.play().catch(() => {}); setPlaying(true); }, []);
   const openPlayer = useCallback(() => setExpanded(true), []);
 
+  const seekTo = useCallback((seconds: number) => {
+    if (!audioRef.current || !Number.isFinite(seconds)) return;
+    audioRef.current.currentTime = Math.max(0, seconds);
+    setCurrentTime(seconds);
+  }, []);
+
   // Events
   useEffect(() => {
     const audio = audioRef.current;
@@ -120,6 +128,12 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     audioRef.current.currentTime = Math.max(0, Math.min(duration, audioRef.current.currentTime + secs));
   }, [duration]);
 
+  const seekTo = useCallback((seconds: number) => {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = Math.max(0, seconds);
+    setCurrentTime(audioRef.current.currentTime);
+  }, []);
+
   const changeSpeed = useCallback((s: number) => {
     setSpeed(s);
     if (audioRef.current) audioRef.current.playbackRate = s;
@@ -128,7 +142,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <PlayerContext.Provider value={{ track, playing, play, pause, resume, openPlayer }}>
+    <PlayerContext.Provider value={{ track, playing, play, pause, resume, openPlayer, seekTo }}>
       {children}
 
       {/* ── Full-screen player ─────────────────────── */}
