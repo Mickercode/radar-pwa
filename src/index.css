@@ -180,6 +180,20 @@ a {
   margin-left: auto;
 }
 
+.nav__back {
+  flex: none;
+}
+
+.nav__page-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
 .icon-btn {
   display: inline-flex;
   align-items: center;
@@ -3714,6 +3728,51 @@ a {
 
 .auth-link:hover {
   color: #36e0d0;
+}
+
+.auth-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.auth-label-row .auth-label { margin-bottom: 0; }
+
+.auth-forgot-link {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+.auth-forgot-link:hover { color: var(--cyan); }
+
+.auth-forgot-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.auth-forgot-title {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 800;
+  color: var(--text);
+}
+
+.auth-forgot-hint {
+  font-size: var(--step--1);
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-bottom: 0.25rem;
+}
+
+.auth-success {
+  font-size: var(--step--1);
+  color: var(--lime);
+  background: rgba(69, 212, 131, 0.1);
+  border: 1px solid rgba(69, 212, 131, 0.25);
+  border-radius: var(--r);
+  padding: 0.65rem 0.9rem;
+  line-height: 1.5;
 }
 
 /* ── Profile page ─────────────────────────── */

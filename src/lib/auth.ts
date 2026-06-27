@@ -119,6 +119,18 @@ export async function updatePassword(currentPassword: string, newPassword: strin
   }
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  const res = await fetch(BASE + '/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `Request failed (${res.status})`);
+  }
+}
+
 export async function deleteAccount(): Promise<void> {
   const token = getToken();
   const res = await fetch(BASE + '/auth/account', {

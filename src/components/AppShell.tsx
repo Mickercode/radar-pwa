@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { PwaInstall } from './PwaInstall';
 import { Icon } from './Icon';
 
@@ -14,23 +14,58 @@ const RIGHT_NAV = [
   { to: '/profile',  icon: 'profile'    as const, label: 'You'      },
 ] as const;
 
+// Pages that are main tabs (logo shown)
+const MAIN_PATHS = new Set(['/', '/clips', '/podcasts', '/brain', '/notebook', '/profile']);
+
+// Sub-page title + optional right action
+const SUB_PAGE_META: Record<string, { title: string; back: string }> = {
+  '/settings': { title: 'Settings',    back: '/'       },
+  '/saved':    { title: 'Saved',       back: '/'       },
+  '/capture':  { title: 'Capture',     back: '/'       },
+  '/notebook': { title: 'Notebook',    back: '/'       },
+};
+
 export function AppShell() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  const isMain = MAIN_PATHS.has(pathname);
+  const subMeta = SUB_PAGE_META[pathname];
 
   return (
     <div className="shell">
-      {/* Top bar */}
+      {/* ── Top bar ───────────────────────────────── */}
       <nav className="nav">
-        <div className="nav__brand">
-          <img src="/assets/logo-icon.jpeg" alt="Radar" className="nav__logo" width={52} height={52} />
-        </div>
-        <div className="nav__spacer" />
-        <NavLink to="/saved" className="icon-btn" aria-label="Saved">
-          <Icon name="bookmark" size={20} />
-        </NavLink>
-        <NavLink to="/settings" className="icon-btn" aria-label="Settings">
-          <Icon name="settings" size={20} />
-        </NavLink>
+        {isMain ? (
+          /* Main pages: logo on left */
+          <>
+            <div className="nav__brand">
+              <img src="/assets/logo-icon.jpeg" alt="Radar" className="nav__logo" width={52} height={52} />
+            </div>
+            <div className="nav__spacer" />
+            <NavLink to="/saved" className="icon-btn" aria-label="Saved">
+              <Icon name="bookmark" size={20} />
+            </NavLink>
+            <NavLink to="/settings" className="icon-btn" aria-label="Settings">
+              <Icon name="settings" size={20} />
+            </NavLink>
+          </>
+        ) : (
+          /* Sub-pages: back button + title */
+          <>
+            <button
+              className="icon-btn nav__back"
+              onClick={() => navigate(subMeta?.back ?? -1 as never)}
+              aria-label="Go back"
+            >
+              <Icon name="left" size={20} />
+            </button>
+            <span className="nav__page-title">
+              {subMeta?.title ?? pathname.replace('/', '')}
+            </span>
+            <div style={{ width: 40 }} />
+          </>
+        )}
       </nav>
 
       <main className="shell__main">
@@ -39,7 +74,7 @@ export function AppShell() {
 
       <PwaInstall />
 
-      {/* Bottom dock with center FAB */}
+      {/* ── Bottom dock ───────────────────────────── */}
       <nav className="dock" role="navigation" aria-label="Main navigation">
         {LEFT_NAV.map(item => (
           <NavLink
