@@ -40,7 +40,8 @@ export function AppShell() {
           /* Main pages: logo on left */
           <>
             <div className="nav__brand">
-              <img src="/assets/logo-icon.jpeg" alt="Radar" className="nav__logo" width={52} height={52} />
+              <span className="nav__logo-mark">⚡</span>
+              <span className="nav__logo-text">Radar</span>
             </div>
             <div className="nav__spacer" />
             <NavLink to="/saved" className="icon-btn" aria-label="Saved">
