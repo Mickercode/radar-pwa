@@ -191,6 +191,15 @@ export interface UserPreferences {
   onboardingDone: boolean;
 }
 
+export async function getStats(): Promise<{ saved: number; notes: number }> {
+  const token = getToken();
+  const res = await fetch(BASE + '/auth/stats', {
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
+  return res.json() as Promise<{ saved: number; notes: number }>;
+}
+
 export async function getMe(): Promise<{ user: AuthUser; preferences: UserPreferences }> {
   const token = getToken();
   const res = await fetch(BASE + '/auth/me', {
@@ -215,6 +224,20 @@ export async function updateInterests(
     body: JSON.stringify({ interests, location, onboardingDone }),
   });
   if (!res.ok) throw new Error(`Failed to update interests (${res.status})`);
+}
+
+/** Sign in with a Google id_token (from Google One Tap or GSI button). */
+export async function googleSignIn(idToken: string): Promise<AuthResponse & { isNew?: boolean }> {
+  const res = await fetch(BASE + '/auth/google', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { error?: string; message?: string };
+    throw new Error(data.error ?? data.message ?? `Google sign-in failed (${res.status})`);
+  }
+  return res.json() as Promise<AuthResponse & { isNew?: boolean }>;
 }
 
 export async function resetPassword(token: string, newPassword: string): Promise<void> {

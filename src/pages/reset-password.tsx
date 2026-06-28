@@ -38,10 +38,7 @@ export function ResetPasswordPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-head">
-          <div className="auth-logo">
-            <span className="auth-logo-mark">⚡</span>
-          </div>
-          <h1 className="auth-title">Radar</h1>
+          <img src="/assets/logo-wide.jpeg" alt="Radar" className="auth-logo-img" />
           <p className="auth-sub">Choose a new password</p>
         </div>
 

@@ -1,9 +1,11 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth, getMe } from './lib/auth';
 import { syncSavedFromBE } from './lib/saved';
+import { registerPush } from './lib/push';
 import { AudioPlayerProvider } from './components/AudioPlayer';
 import { AppShell } from './components/AppShell';
+import { RequireAuth } from './components/RequireAuth';
 import { FeedPage } from './pages/feed';
 import { ClipsPage } from './pages/clips';
 import { PodcastsPage } from './pages/podcasts';
@@ -16,16 +18,40 @@ import { SettingsPage } from './pages/settings';
 import { LoginPage } from './pages/login';
 import { ResetPasswordPage } from './pages/reset-password';
 import { OnboardingPage } from './pages/onboarding';
+import { SubscribePage } from './pages/subscribe';
 import { NotFoundPage } from './pages/not-found';
 
+/** Syncs BE data on login and re-registers push if permission already granted. */
 function SyncOnLogin() {
   const { token, setPrefs } = useAuth();
   useEffect(() => {
     if (!token) return;
     syncSavedFromBE();
     getMe().then((res) => setPrefs(res.preferences)).catch(() => {});
+    if ('Notification' in window && Notification.permission === 'granted') {
+      registerPush().catch(() => {});
+    }
   }, [token]);
   return null;
+}
+
+/**
+ * Redirect already-authenticated users away from /login.
+ * Sends them to the page they originally wanted, or / by default.
+ */
+function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
+  const token    = useAuth(s => s.token);
+  const hydrated = useAuth(s => s.hydrated);
+  const location = useLocation();
+
+  if (!hydrated) return null; // wait for rehydration
+
+  if (token) {
+    const from = (location.state as { from?: Location })?.from?.pathname ?? '/';
+    return <Navigate to={from} replace />;
+  }
+
+  return <>{children}</>;
 }
 
 export function App() {
@@ -34,21 +60,47 @@ export function App() {
       <BrowserRouter>
         <SyncOnLogin />
         <Routes>
-          <Route element={<AppShell />}>
-            <Route index element={<FeedPage />} />
-            <Route path="clips" element={<ClipsPage />} />
-            <Route path="podcasts" element={<PodcastsPage />} />
-            <Route path="capture" element={<CapturePage />} />
-            <Route path="brain" element={<BrainPage />} />
-            <Route path="notebook" element={<NotebookPage />} />
-            <Route path="saved" element={<KnowledgePage />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-          <Route path="/login" element={<LoginPage />} />
+          {/* ── Public pages ── */}
+          <Route
+            path="/login"
+            element={
+              <RedirectIfAuthed>
+                <LoginPage />
+              </RedirectIfAuthed>
+            }
+          />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
+
+          {/* ── Onboarding (auth required but outside AppShell) ── */}
+          <Route
+            path="/onboarding"
+            element={
+              <RequireAuth>
+                <OnboardingPage />
+              </RequireAuth>
+            }
+          />
+
+          {/* ── Authenticated app ── */}
+          <Route
+            element={
+              <RequireAuth>
+                <AppShell />
+              </RequireAuth>
+            }
+          >
+            <Route index element={<FeedPage />} />
+            <Route path="clips"     element={<ClipsPage />} />
+            <Route path="podcasts"  element={<PodcastsPage />} />
+            <Route path="capture"   element={<CapturePage />} />
+            <Route path="brain"     element={<BrainPage />} />
+            <Route path="notebook"  element={<NotebookPage />} />
+            <Route path="saved"     element={<KnowledgePage />} />
+            <Route path="profile"   element={<ProfilePage />} />
+            <Route path="settings"  element={<SettingsPage />} />
+            <Route path="subscribe" element={<SubscribePage />} />
+            <Route path="*"         element={<NotFoundPage />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </AudioPlayerProvider>

@@ -8,11 +8,14 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: [
-        'favicon.png',
-        'apple-touch-icon.png',
-        'icons/icon-192.png',
-        'icons/icon-512.png',
-        'icons/icon-512-maskable.png',
+        'favicon.jpg',
+        'apple-touch-icon.jpg',
+        'icons/icon-192.jpg',
+        'icons/icon-512.jpg',
+        'icons/icon-512-maskable.jpg',
+        'assets/logo.jpeg',
+        'assets/logo-wide.jpeg',
+        'assets/logo-icon.jpeg',
       ],
       manifest: {
         name: 'Radar — Understand once. Remember forever.',
@@ -27,25 +30,25 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/icons/icon-192.png',
+            src: '/icons/icon-192.jpg',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/jpeg',
           },
           {
-            src: '/icons/icon-512.png',
+            src: '/icons/icon-512.jpg',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/jpeg',
           },
           {
-            src: '/icons/icon-512-maskable.png',
+            src: '/icons/icon-512-maskable.jpg',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/jpeg',
             purpose: 'maskable',
           },
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,jpeg,svg,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,jpeg,jpg,svg,webmanifest}'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         clientsClaim: true,

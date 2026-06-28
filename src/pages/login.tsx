@@ -1,17 +1,21 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '../components/Icon';
-import { useAuth, login, signup, forgotPassword, verifyOtp, resendOtp, getMe } from '../lib/auth';
+import { useAuth, login, signup, forgotPassword, verifyOtp, resendOtp, getMe, googleSignIn } from '../lib/auth';
 
 type Mode = 'login' | 'signup' | 'otp' | 'forgot';
 
 export function LoginPage() {
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const location  = useLocation();
   const { user, setAuth } = useAuth();
 
+  // Where to go after a successful login
+  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? '/';
+
   useEffect(() => {
-    if (user) navigate('/', { replace: true });
-  }, [user, navigate]);
+    if (user) navigate(from, { replace: true });
+  }, [user, navigate, from]);
 
   const [mode, setMode]         = useState<Mode>('login');
   const [email, setEmail]       = useState('');
@@ -35,6 +39,34 @@ export function LoginPage() {
     const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [resendCooldown]);
+
+  // Google One Tap
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+  useEffect(() => {
+    if (!googleClientId) return;
+    const existingScript = document.getElementById('google-gsi');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.id = 'google-gsi';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+  }, [googleClientId]);
+
+  async function handleGoogleCredential(idToken: string) {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await googleSignIn(idToken);
+      setAuth(res.token, res.user);
+      const dest = res.isNew ? '/onboarding' : from;
+      navigate(dest, { replace: true });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Google sign-in failed');
+    } finally { setLoading(false); }
+  }
 
   const switchMode = (next: Mode) => {
     setMode(next);
@@ -73,7 +105,7 @@ export function LoginPage() {
         // New account — fetch prefs then send to onboarding if not done yet
         try {
           const me = await getMe();
-          navigate(me.preferences.onboardingDone ? '/' : '/onboarding', { replace: true });
+          navigate(me.preferences.onboardingDone ? from : '/onboarding', { replace: true });
         } catch {
           navigate('/onboarding', { replace: true });
         }
@@ -96,7 +128,7 @@ export function LoginPage() {
       if (mode === 'login') {
         const res = await login(trimmedEmail, password);
         setAuth(res.token, res.user);
-        navigate('/', { replace: true });
+        navigate(from, { replace: true });
       } else {
         await signup(trimmedEmail, password, name.trim() || undefined);
         setResendCooldown(60);
@@ -126,10 +158,7 @@ export function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-head">
-          <div className="auth-logo">
-            <span className="auth-logo-mark">⚡</span>
-          </div>
-          <h1 className="auth-title">Radar</h1>
+          <img src="/assets/logo-wide.jpeg" alt="Radar" className="auth-logo-img" />
           <p className="auth-sub">Understand once. Remember forever.</p>
         </div>
 
@@ -285,15 +314,87 @@ export function LoginPage() {
         )}
 
         {(mode === 'login' || mode === 'signup') && (
-          <p className="auth-footnote">
-            {mode === 'login' ? (
-              <>Don't have an account?{' '}<button className="auth-link" onClick={() => switchMode('signup')} type="button">Sign up</button></>
-            ) : (
-              <>Already have an account?{' '}<button className="auth-link" onClick={() => switchMode('login')} type="button">Sign in</button></>
+          <>
+            {googleClientId && (
+              <>
+                <div className="auth-divider"><span>or</span></div>
+                <GoogleSignInButton
+                  clientId={googleClientId}
+                  onCredential={handleGoogleCredential}
+                  disabled={loading}
+                />
+              </>
             )}
-          </p>
+            <p className="auth-footnote">
+              {mode === 'login' ? (
+                <>Don't have an account?{' '}<button className="auth-link" onClick={() => switchMode('signup')} type="button">Sign up</button></>
+              ) : (
+                <>Already have an account?{' '}<button className="auth-link" onClick={() => switchMode('login')} type="button">Sign in</button></>
+              )}
+            </p>
+          </>
         )}
       </div>
     </div>
+  );
+}
+
+// ── Google Sign-In Button component ─────────────────────────────────────────
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: object) => void;
+          renderButton: (el: HTMLElement, config: object) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
+
+function GoogleSignInButton({
+  clientId,
+  onCredential,
+  disabled,
+}: {
+  clientId: string;
+  onCredential: (idToken: string) => void;
+  disabled: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function init() {
+      if (!window.google || !ref.current) return;
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response: { credential: string }) => { onCredential(response.credential); },
+      });
+      window.google.accounts.id.renderButton(ref.current, {
+        type: 'standard',
+        theme: 'filled_black',
+        size: 'large',
+        shape: 'pill',
+        width: ref.current.offsetWidth || 320,
+        text: 'continue_with',
+        logo_alignment: 'center',
+      });
+    }
+
+    if (window.google) { init(); return; }
+    // Wait for the GSI script to load
+    const script = document.getElementById('google-gsi');
+    if (script) { script.addEventListener('load', init); return () => script.removeEventListener('load', init); }
+  }, [clientId, onCredential]);
+
+  return (
+    <div
+      ref={ref}
+      className={`google-btn-wrap${disabled ? ' google-btn-wrap--disabled' : ''}`}
+      aria-label="Continue with Google"
+    />
   );
 }

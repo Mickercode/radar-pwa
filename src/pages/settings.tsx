@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { usePwaInstall } from '../lib/usePwaInstall';
+import { PwaInstallButton } from '../components/PwaInstall';
 import { useAuth, updateName, updatePassword, deleteAccount } from '../lib/auth';
+import { pushSupported, pushPermission, requestAndRegisterPush, unregisterPush } from '../lib/push';
 
 const INTEREST_LABELS: Record<string, string> = {
   tech: 'Tech', business: 'Business', finance: 'Finance', politics: 'Politics',
@@ -15,7 +17,7 @@ type Section = null | 'name' | 'password' | 'delete';
 
 export function SettingsPage() {
   const navigate = useNavigate();
-  const { canInstall, install, isIOS, isStandalone, isInstalled } = usePwaInstall();
+  const { isStandalone, isInstalled } = usePwaInstall();
   const { user, interests, setAuth, clearAuth } = useAuth();
 
   const [section, setSection] = useState<Section>(null);
@@ -31,6 +33,30 @@ export function SettingsPage() {
   const [confirmPw, setConfirmPw]   = useState('');
   // delete confirm
   const [deleteConfirm, setDeleteConfirm] = useState('');
+
+  // Push notification state
+  const [pushPerm, setPushPerm] = useState<NotificationPermission>(() =>
+    pushSupported() ? pushPermission() : 'denied',
+  );
+  const [pushLoading, setPushLoading] = useState(false);
+
+  useEffect(() => {
+    if (pushSupported()) setPushPerm(pushPermission());
+  }, []);
+
+  async function handleTogglePush() {
+    if (!pushSupported()) return;
+    setPushLoading(true);
+    try {
+      if (pushPerm === 'granted') {
+        await unregisterPush();
+        setPushPerm('default');
+      } else {
+        const p = await requestAndRegisterPush();
+        setPushPerm(p);
+      }
+    } finally { setPushLoading(false); }
+  }
 
   function openSection(s: Section) {
     setSection(s);
@@ -100,23 +126,12 @@ export function SettingsPage() {
       {/* Install CTA */}
       {!isStandalone && !isInstalled && (
         <div className="install-card">
-          <div className="install-card__icon"><Icon name="download" size={28} /></div>
+          <img src="/assets/logo-icon.jpeg" alt="" className="install-card__logo" />
           <div className="install-card__text">
-            <h3>Install Radar</h3>
+            <h3>Download Radar</h3>
             <p>Add to your home screen for a faster, app-like experience — works offline too.</p>
           </div>
-          {isIOS ? (
-            <div className="install-card__ios">
-              <span>Tap</span><Icon name="clip" size={16} />
-              <span>Share → <strong>Add to Home Screen</strong></span>
-            </div>
-          ) : canInstall ? (
-            <button className="install-card__btn" onClick={install}>
-              <Icon name="download" size={18} />Install Radar
-            </button>
-          ) : (
-            <p className="install-card__hint">Open your browser menu and tap <strong>Add to Home Screen</strong></p>
-          )}
+          <PwaInstallButton className="install-card__action" />
         </div>
       )}
 
@@ -257,6 +272,23 @@ export function SettingsPage() {
       {/* ── App section ── */}
       <div className="settings-section">
         <p className="settings-section-label">App</p>
+
+        {pushSupported() && (
+          <div className="settings-row" onClick={!pushLoading ? handleTogglePush : undefined} style={{ cursor: pushPerm === 'denied' ? 'not-allowed' : 'pointer' }}>
+            <div className="settings-row__icon"><Icon name="bell" size={18} /></div>
+            <div className="settings-row__body">
+              <span className="settings-row__label">Push Notifications</span>
+              <span className="settings-row__value">
+                {pushPerm === 'granted' ? 'Enabled' : pushPerm === 'denied' ? 'Blocked by browser' : 'Tap to enable'}
+              </span>
+            </div>
+            {pushLoading
+              ? <span className="auth-spinner" />
+              : <div className={`settings-toggle${pushPerm === 'granted' ? ' settings-toggle--on' : ''}`} />
+            }
+          </div>
+        )}
+
         <div className="settings-row">
           <div className="settings-row__icon"><Icon name="radar" size={18} /></div>
           <div className="settings-row__body">

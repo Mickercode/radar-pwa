@@ -12,7 +12,8 @@ import {
 type SaveStatus = 'idle' | 'saving' | 'saved';
 
 export function NotebookPage() {
-  const [notes, setNotes] = useState<Note[]>(() => loadNotes());
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -21,25 +22,29 @@ export function NotebookPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
+  // Load notes on mount
+  useEffect(() => {
+    loadNotes().then(n => { setNotes(n); setLoading(false); });
+  }, []);
+
   const activeNote = notes.find((n) => n.id === activeId) ?? null;
   const inEditor = activeId !== null;
 
   const filtered = search.trim()
-    ? notes.filter(
-        (n) =>
-          n.title.toLowerCase().includes(search.toLowerCase()) ||
-          n.body.toLowerCase().includes(search.toLowerCase()),
+    ? notes.filter(n =>
+        n.title.toLowerCase().includes(search.toLowerCase()) ||
+        n.body.toLowerCase().includes(search.toLowerCase()),
       )
     : notes;
 
-  // Debounced autosave whenever title or body changes while editing
+  // Debounced autosave
   useEffect(() => {
     if (!activeId) return;
     setSaveStatus('saving');
-    const timer = window.setTimeout(() => {
-      const updated = updateNote(activeId, { title, body });
-      setNotes((prev) =>
-        [...prev.map((n) => (n.id === activeId ? updated : n))].sort(
+    const timer = window.setTimeout(async () => {
+      const updated = await updateNote(activeId, { title, body });
+      setNotes(prev =>
+        [...prev.map(n => (n.id === activeId ? updated : n))].sort(
           (a, b) => b.updatedAt.localeCompare(a.updatedAt),
         ),
       );
@@ -54,34 +59,33 @@ export function NotebookPage() {
     setBody(note.body);
     setSaveStatus('idle');
     setConfirmDelete(false);
-    // Focus body if title already filled, else focus title
     requestAnimationFrame(() => {
       if (note.title && bodyRef.current) bodyRef.current.focus();
     });
   }, []);
 
-  const handleNewNote = useCallback(() => {
-    const note = createNote();
-    setNotes((prev) => [note, ...prev]);
+  const handleNewNote = useCallback(async () => {
+    const note = await createNote();
+    setNotes(prev => [note, ...prev]);
     openNote(note);
   }, [openNote]);
 
-  // Force-save and go back to list
-  const handleBack = useCallback(() => {
+  const handleBack = useCallback(async () => {
     if (activeId) {
-      updateNote(activeId, { title, body });
-      setNotes(loadNotes());
+      await updateNote(activeId, { title, body });
+      const fresh = await loadNotes();
+      setNotes(fresh);
     }
     setActiveId(null);
     setSaveStatus('idle');
     setConfirmDelete(false);
   }, [activeId, title, body]);
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!activeId) return;
     if (!confirmDelete) { setConfirmDelete(true); return; }
-    deleteNote(activeId);
-    setNotes(loadNotes());
+    await deleteNote(activeId);
+    setNotes(prev => prev.filter(n => n.id !== activeId));
     setActiveId(null);
     setConfirmDelete(false);
   }, [activeId, confirmDelete]);
@@ -106,7 +110,9 @@ export function NotebookPage() {
           </button>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="feed-loading"><div className="feed-spinner" /><p>Loading notes…</p></div>
+        ) : filtered.length === 0 ? (
           <div className="nb__empty">
             <Icon name="notebook" size={48} />
             <h3>{search ? 'No notes match' : 'No notes yet'}</h3>
