@@ -2,7 +2,7 @@ import { getToken } from './auth';
 
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
 
-function authHeader() {
+function authHeader(): Record<string, string> {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
