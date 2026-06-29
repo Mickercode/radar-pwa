@@ -134,10 +134,11 @@ export interface CapturedInsight {
 export const api = {
   topics: () => get<Topic[]>('/topics'),
 
-  feed: (topicIds?: string[], country?: string) => {
+  feed: (topicIds?: string[], country?: string, interests?: string[]) => {
     const params: Record<string, string> = {};
     if (topicIds?.length) params.topicIds = topicIds.join(',');
     if (country) params.country = country;
+    if (interests?.length) params.interests = interests.join(',');
     return get<FeedResult>('/feed', params);
   },
 

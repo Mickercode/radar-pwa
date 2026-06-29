@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { type ContentItem, api } from '../lib/api';
@@ -6,22 +6,112 @@ import { saveItem, unsaveItem, isSaved } from '../lib/saved';
 import { DetailView } from '../components/DetailView';
 import { useAuth } from '../lib/auth';
 
-type Filter = 'all' | 'news' | 'podcast' | 'clip';
+type TypeFilter = 'all' | 'news' | 'podcast' | 'clip';
 
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all',     label: 'All'      },
-  { key: 'podcast', label: 'Podcasts' },
-  { key: 'news',    label: 'News'     },
-  { key: 'clip',    label: 'Clips'    },
-];
+// ── Static data ────────────────────────────────────────────────────────────────
 
-// Map interest slugs to display labels
 const INTEREST_LABELS: Record<string, string> = {
   tech: 'Tech', business: 'Business', finance: 'Finance', politics: 'Politics',
-  science: 'Science', health: 'Health', climate: 'Climate', sports: 'Sports',
-  music: 'Music', film: 'Film & TV', education: 'Education', fashion: 'Fashion',
-  travel: 'Travel & Lifestyle', faith: 'Faith & Philosophy',
+  economy: 'Economy', science: 'Science', health: 'Health', climate: 'Climate',
+  sports: 'Sports', music: 'Music', film: 'Film & TV', education: 'Education',
+  fashion: 'Fashion', travel: 'Travel', faith: 'Faith',
 };
+
+// Sub-categories per interest — for client-side narrowing within the tab
+const SUBCATS: Record<string, { label: string; kws: string[] }[]> = {
+  politics: [
+    { label: 'Government',  kws: ['government', 'minister', 'president', 'senate', 'nass', 'assembly'] },
+    { label: 'Elections',   kws: ['election', 'vote', 'inec', 'ballot', 'candidate', 'campaign'] },
+    { label: 'Policy',      kws: ['policy', 'law', 'bill', 'legislation', 'reform', 'regulation', 'executive order'] },
+    { label: 'Security',    kws: ['security', 'military', 'police', 'bandits', 'terrorism', 'insurgency', 'conflict'] },
+  ],
+  economy: [
+    { label: 'Inflation',   kws: ['inflation', 'price', 'cost of living', 'cpi', 'purchasing power', 'subsidy'] },
+    { label: 'Jobs',        kws: ['jobs', 'employment', 'unemployment', 'labour', 'salary', 'wages', 'layoff'] },
+    { label: 'Oil & Gas',   kws: ['oil', 'gas', 'nnpc', 'petroleum', 'fuel', 'opec', 'crude'] },
+    { label: 'Banking',     kws: ['bank', 'cbn', 'naira', 'interest rate', 'fintech', 'payment', 'forex'] },
+  ],
+  finance: [
+    { label: 'Naira / FX',  kws: ['naira', 'forex', 'exchange rate', 'dollar', 'devaluation', 'cbn'] },
+    { label: 'Investments', kws: ['invest', 'stock', 'bond', 'etf', 'portfolio', 'dividend', 'asset'] },
+    { label: 'Crypto',      kws: ['bitcoin', 'crypto', 'blockchain', 'web3', 'token', 'binance', 'nft'] },
+    { label: 'Insurance',   kws: ['insurance', 'pension', 'pencom', 'microfinance', 'savings', 'naicom'] },
+  ],
+  tech: [
+    { label: 'AI',          kws: ['ai', 'artificial intelligence', 'machine learning', 'chatgpt', 'llm', 'generative'] },
+    { label: 'Startups',    kws: ['startup', 'founder', 'venture', 'funding', 'seed', 'raise', 'series a'] },
+    { label: 'Security',    kws: ['cybersecurity', 'hack', 'breach', 'phishing', 'malware', 'scam', 'fraud'] },
+    { label: 'Telecom',     kws: ['mtn', 'airtel', 'glo', '5g', 'telecom', 'broadband', 'ncc'] },
+  ],
+  health: [
+    { label: 'Disease',     kws: ['disease', 'outbreak', 'epidemic', 'virus', 'cholera', 'malaria', 'mpox'] },
+    { label: 'Nutrition',   kws: ['nutrition', 'diet', 'food', 'hunger', 'malnutrition', 'obesity'] },
+    { label: 'Mental',      kws: ['mental health', 'depression', 'anxiety', 'suicide', 'wellbeing', 'stress'] },
+    { label: 'Policy',      kws: ['nhia', 'health insurance', 'ministry of health', 'hospital', 'nhis'] },
+  ],
+  sports: [
+    { label: 'Football',    kws: ['football', 'super eagles', 'npfl', 'premier league', 'laliga', 'afcon', 'world cup'] },
+    { label: 'Basketball',  kws: ['basketball', 'nba', "d'tigers", "d'tigress", 'fiba'] },
+    { label: 'Athletics',   kws: ['athletics', 'sprints', 'olympics', 'track', 'field', 'medal'] },
+    { label: 'Others',      kws: ['tennis', 'golf', 'boxing', 'cricket', 'swimming', 'wrestling', 'esports'] },
+  ],
+  business: [
+    { label: 'SMEs',        kws: ['sme', 'small business', 'entrepreneur', 'startup', 'informal'] },
+    { label: 'Markets',     kws: ['market', 'trade', 'import', 'export', 'logistics', 'supply chain'] },
+    { label: 'Corporate',   kws: ['company', 'ceo', 'board', 'merger', 'acquisition', 'conglomerate'] },
+    { label: 'Agriculture', kws: ['agriculture', 'farming', 'agric', 'harvest', 'food security', 'livestock'] },
+  ],
+  science: [
+    { label: 'Space',       kws: ['space', 'nasa', 'satellite', 'rocket', 'orbit', 'astronomy', 'nigeriasat'] },
+    { label: 'Medicine',    kws: ['medicine', 'clinical', 'trial', 'vaccine', 'therapy', 'drug', 'drug approval'] },
+    { label: 'Environment', kws: ['biodiversity', 'ecology', 'rainforest', 'species', 'conservation', 'wildlife'] },
+    { label: 'Innovation',  kws: ['innovation', 'research', 'discovery', 'laboratory', 'experiment', 'nanotechnology'] },
+  ],
+  climate: [
+    { label: 'Energy',      kws: ['solar', 'renewable', 'wind', 'electricity', 'power', 'grid', 'nerc', 'discos'] },
+    { label: 'Oil & Gas',   kws: ['oil spill', 'gas flaring', 'fossil fuel', 'pipeline', 'petroleum', 'emission'] },
+    { label: 'Weather',     kws: ['flood', 'drought', 'rainfall', 'erosion', 'disaster', 'storm', 'heatwave'] },
+    { label: 'Policy',      kws: ['cop', 'paris agreement', 'carbon', 'climate action', 'green deal', 'net zero'] },
+  ],
+  education: [
+    { label: 'University',  kws: ['university', 'unilag', 'ui', 'asuu', 'strike', 'jamb', 'postgraduate', 'admission'] },
+    { label: 'Schools',     kws: ['primary school', 'secondary school', 'waec', 'neco', 'teacher', 'subeb'] },
+    { label: 'EdTech',      kws: ['edtech', 'online learning', 'e-learning', 'distance', 'mooc', 'coursera'] },
+    { label: 'Scholarships', kws: ['scholarship', 'bursary', 'award', 'fellowship', 'grant', 'study abroad'] },
+  ],
+  music: [
+    { label: 'Afrobeats',   kws: ['afrobeats', 'afropop', 'burna', 'wizkid', 'davido', 'asake', 'amapiano'] },
+    { label: 'Gospel',      kws: ['gospel', 'worship', 'praise', 'christian music', 'hymn'] },
+    { label: 'Hip-Hop',     kws: ['hip hop', 'rap', 'trap', 'street hop', 'olamide', 'falz'] },
+    { label: 'Industry',    kws: ['record label', 'streaming', 'spotify', 'music award', 'headies', 'tour'] },
+  ],
+  film: [
+    { label: 'Nollywood',   kws: ['nollywood', 'nigerian film', 'aba', 'actor', 'actress', 'amaa'] },
+    { label: 'Hollywood',   kws: ['hollywood', 'oscar', 'disney', 'marvel', 'box office', 'blockbuster'] },
+    { label: 'Streaming',   kws: ['netflix', 'prime video', 'disney+', 'series', 'tv show', 'season'] },
+    { label: 'Reviews',     kws: ['review', 'rating', 'critic', 'rotten tomatoes', 'imdb', 'must watch'] },
+  ],
+  fashion: [
+    { label: 'Nigerian',    kws: ['ankara', 'aso-ebi', 'agbada', 'gele', 'adire', 'local designer'] },
+    { label: 'Global',      kws: ['gucci', 'louis vuitton', 'fashion week', 'runway', 'zara', 'h&m'] },
+    { label: 'Lifestyle',   kws: ['lifestyle', 'beauty', 'skincare', 'wellness', 'grooming', 'haircare'] },
+  ],
+  travel: [
+    { label: 'Nigeria',     kws: ['nigeria tourism', 'hotel', 'resort', 'abuja', 'lagos', 'calabar', 'vacation'] },
+    { label: 'Visa / Fly',  kws: ['visa', 'passport', 'airline', 'airport', 'emigrate', 'japa'] },
+    { label: 'Africa',      kws: ['ghana', 'kenya', 'south africa', 'africa', 'safari', 'rwanda', 'east africa'] },
+  ],
+  faith: [
+    { label: 'Christianity', kws: ['church', 'pastor', 'sermon', 'christian', 'rccg', 'winners chapel', 'mountain of fire'] },
+    { label: 'Islam',       kws: ['islam', 'mosque', 'imam', 'sultan', 'ramadan', 'hajj', 'jummat'] },
+    { label: 'Ethics',      kws: ['ethics', 'moral', 'philosophy', 'virtue', 'values', 'integrity'] },
+  ],
+};
+
+function matchesSub(item: ContentItem, kws: string[]): boolean {
+  const hay = (item.title + ' ' + item.source + ' ' + (item.summary?.what ?? '')).toLowerCase();
+  return kws.some(k => hay.includes(k));
+}
 
 function timeAgo(iso: string): string {
   const h = (Date.now() - new Date(iso).getTime()) / 3_600_000;
@@ -36,7 +126,7 @@ function formatDuration(secs: number): string {
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : secs < 60 ? `${secs}s` : `${m}m`;
 }
 
-// ── Grid Card ────────────────────────────────────────────────────────────────
+// ── Feed card ─────────────────────────────────────────────────────────────────
 
 function FeedCard({ item, onDetail }: { item: ContentItem; onDetail: (i: ContentItem) => void }) {
   const [saved, setSaved] = useState(() => isSaved(item.id));
@@ -53,7 +143,9 @@ function FeedCard({ item, onDetail }: { item: ContentItem; onDetail: (i: Content
       <div className="gcard__thumb">
         {item.thumbnailUrl
           ? <img src={item.thumbnailUrl} alt="" loading="lazy" />
-          : <div className="gcard__no-thumb"><Icon name={item.type === 'podcast' ? 'headphones' : item.type === 'clip' ? 'play' : 'feed'} size={32} /></div>
+          : <div className="gcard__no-thumb">
+              <Icon name={item.type === 'podcast' ? 'headphones' : item.type === 'clip' ? 'play' : 'feed'} size={32} />
+            </div>
         }
         <span className={`gcard__badge gcard__badge--${item.type}`}>{item.type.toUpperCase()}</span>
         {isMustSee && <span className="gcard__must">★ Must-See</span>}
@@ -81,36 +173,80 @@ function FeedCard({ item, onDetail }: { item: ContentItem; onDetail: (i: Content
   );
 }
 
-// ── Feed Page ────────────────────────────────────────────────────────────────
+// ── Feed page ─────────────────────────────────────────────────────────────────
 
 export function FeedPage() {
   const navigate = useNavigate();
   const { interests, location, user } = useAuth();
 
-  const [all, setAll]         = useState<ContentItem[]>([]);
-  const [filter, setFilter]   = useState<Filter>('all');
+  // Active interest tab — null means "For You"
+  const [activeInterest, setActiveInterest] = useState<string | null>(null);
+  const [activeSub, setActiveSub]           = useState<string | null>(null);
+  const [typeFilter, setTypeFilter]         = useState<TypeFilter>('all');
+
+  const [items, setItems]     = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
   const [detail, setDetail]   = useState<ContentItem | null>(null);
 
+  // Cache fetched items per tab key so switching back doesn't re-fetch
+  const cache = useRef<Map<string, ContentItem[]>>(new Map());
+
   useEffect(() => {
+    const key = activeInterest ?? 'for-you';
+    if (cache.current.has(key)) {
+      setItems(cache.current.get(key)!);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    api.feed([], location ?? undefined)
-      .then(r => { setAll(r.items); setLoading(false); })
-      .catch(() => { setError('Could not load feed.'); setLoading(false); });
-  }, [interests, location]);
+    setError(null);
 
-  const filtered = filter === 'all' ? all : all.filter(i => i.type === filter);
+    const fetchInterests = activeInterest ? [activeInterest] : undefined;
+    api.feed([], location ?? undefined, fetchInterests)
+      .then(r => {
+        cache.current.set(key, r.items);
+        setItems(r.items);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Could not load feed.');
+        setLoading(false);
+      });
+  }, [activeInterest, location]);
 
-  // Group by interest if user has set interests and is viewing 'all'
-  const showGrouped = filter === 'all' && interests.length > 0;
+  // Reset sub-category when switching interest
+  function switchInterest(slug: string | null) {
+    setActiveInterest(slug);
+    setActiveSub(null);
+  }
 
-  // Simple grouping: partition items into "interest sections" + "other"
-  // We use title/source keyword matching since we don't have topic slugs on the FE
+  // Clear cache when interests list changes (preferences updated)
+  useEffect(() => {
+    cache.current.clear();
+    switchInterest(null);
+  }, [interests.join(',')]);
+
+  // Sub-categories available for the active interest
+  const subs = activeInterest ? (SUBCATS[activeInterest] ?? []) : [];
+
+  // Narrow items: sub-category + type filter
+  const visible = items.filter(item => {
+    if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+    if (activeSub) {
+      const subDef = subs.find(s => s.label === activeSub);
+      if (subDef && !matchesSub(item, subDef.kws)) return false;
+    }
+    return true;
+  });
+
+  // "For You" — group by interest using keyword matching (same as before)
   const INTEREST_KEYWORDS: Record<string, string[]> = {
     tech:       ['tech', 'ai', 'software', 'startup', 'app', 'digital', 'cyber', 'data', 'cloud', 'robot'],
     business:   ['business', 'company', 'ceo', 'market', 'economy', 'trade', 'entrepreneur'],
     finance:    ['finance', 'bank', 'naira', 'dollar', 'invest', 'stock', 'crypto', 'money', 'fund'],
+    economy:    ['economy', 'gdp', 'inflation', 'budget', 'fiscal', 'monetary', 'revenue', 'imf', 'world bank'],
     politics:   ['government', 'president', 'minister', 'election', 'senate', 'policy', 'law', 'political'],
     science:    ['science', 'research', 'study', 'space', 'nasa', 'discovery', 'biology', 'physics'],
     health:     ['health', 'hospital', 'covid', 'cancer', 'drug', 'medicine', 'diet', 'fitness', 'disease'],
@@ -121,41 +257,38 @@ export function FeedPage() {
     education:  ['education', 'school', 'university', 'student', 'learning', 'teacher', 'academic'],
     fashion:    ['fashion', 'style', 'design', 'brand', 'wear', 'cloth', 'luxury'],
     travel:     ['travel', 'tourism', 'airline', 'hotel', 'airport', 'visa', 'destination'],
-    faith:      ['church', 'mosque', 'faith', 'religion', 'prayer', 'spiritual', 'god', 'christianity', 'islam'],
+    faith:      ['church', 'mosque', 'faith', 'religion', 'prayer', 'spiritual', 'god'],
   };
 
-  function matchesInterest(item: ContentItem, interest: string): boolean {
-    const kws = INTEREST_KEYWORDS[interest] ?? [];
-    const haystack = (item.title + ' ' + item.source + ' ' + (item.summary?.what ?? '')).toLowerCase();
-    return kws.some(k => haystack.includes(k));
-  }
-
-  function buildGroups(): { label: string; items: ContentItem[] }[] {
-    if (!showGrouped) return [];
+  function buildForYouGroups(): { label: string; items: ContentItem[] }[] {
+    if (interests.length === 0) return [];
     const used = new Set<string>();
     const groups: { label: string; items: ContentItem[] }[] = [];
 
-    for (const interest of interests) {
-      const matched = filtered.filter(i => {
+    for (const slug of interests) {
+      const kws = INTEREST_KEYWORDS[slug] ?? [];
+      const matched = visible.filter(i => {
         if (used.has(i.id)) return false;
-        return matchesInterest(i, interest);
+        const hay = (i.title + ' ' + i.source + ' ' + (i.summary?.what ?? '')).toLowerCase();
+        return kws.some(k => hay.includes(k));
       });
       if (matched.length > 0) {
         matched.forEach(i => used.add(i.id));
-        groups.push({ label: INTEREST_LABELS[interest] ?? interest, items: matched });
+        groups.push({ label: INTEREST_LABELS[slug] ?? slug, items: matched });
       }
     }
-
-    const rest = filtered.filter(i => !used.has(i.id));
+    const rest = visible.filter(i => !used.has(i.id));
     if (rest.length > 0) groups.push({ label: 'More for You', items: rest });
     return groups;
   }
 
-  const groups = buildGroups();
+  const isForYou = activeInterest === null;
+  const forYouGroups = isForYou && interests.length > 0 ? buildForYouGroups() : [];
+  const showGrouped  = isForYou && forYouGroups.length > 0;
 
   return (
     <div className="feed-page">
-      {/* Page header */}
+      {/* ── Page header ─────────────────────────────── */}
       <div className="feed-head">
         <p className="feed-kicker">Today on Radar</p>
         <h1 className="feed-headline">
@@ -164,25 +297,21 @@ export function FeedPage() {
         {user && (
           <p className="feed-sub">
             {interests.length > 0
-              ? `Curated around ${interests.slice(0, 3).map(i => INTEREST_LABELS[i]).join(', ')}${interests.length > 3 ? ` +${interests.length - 3} more` : ''}.`
+              ? activeInterest
+                ? `Showing only ${INTEREST_LABELS[activeInterest] ?? activeInterest} content.`
+                : `Curated around ${interests.slice(0, 3).map(i => INTEREST_LABELS[i] ?? i).join(', ')}${interests.length > 3 ? ` +${interests.length - 3} more` : ''}.`
               : 'The signals worth understanding — ranked for you.'}
           </p>
         )}
         {!user && <p className="feed-sub">The signals worth understanding — ranked for you.</p>}
-
-        {/* Customise interests link */}
         {user && interests.length === 0 && (
-          <button
-            className="feed-interest-cta"
-            onClick={() => navigate('/onboarding')}
-            type="button"
-          >
+          <button className="feed-interest-cta" onClick={() => navigate('/onboarding')} type="button">
             ✦ Personalise your feed →
           </button>
         )}
       </div>
 
-      {/* Location banner */}
+      {/* ── Location banner ──────────────────────────── */}
       {location && (
         <div className="feed-location">
           <Icon name="location" size={13} />
@@ -190,40 +319,99 @@ export function FeedPage() {
         </div>
       )}
 
-      {/* Filter chips */}
-      <div className="feed-chips">
-        {FILTERS.map(f => (
+      {/* ── Interest tabs (only if user has interests) ─ */}
+      {interests.length > 0 && (
+        <div className="feed-interest-tabs" role="tablist" aria-label="Interest filter">
           <button
-            key={f.key}
-            className={`feed-chip${filter === f.key ? ' feed-chip--active' : ''}`}
-            onClick={() => setFilter(f.key)}
+            role="tab"
+            aria-selected={isForYou}
+            className={`feed-itab${isForYou ? ' feed-itab--active' : ''}`}
+            onClick={() => switchInterest(null)}
           >
-            {f.label}
+            For You
+          </button>
+          {interests.map(slug => (
+            <button
+              key={slug}
+              role="tab"
+              aria-selected={activeInterest === slug}
+              className={`feed-itab${activeInterest === slug ? ' feed-itab--active' : ''}`}
+              onClick={() => switchInterest(slug)}
+            >
+              {INTEREST_LABELS[slug] ?? slug}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Sub-category chips ────────────────────────── */}
+      {subs.length > 0 && (
+        <div className="feed-subcats">
+          <button
+            className={`feed-subcat${activeSub === null ? ' feed-subcat--active' : ''}`}
+            onClick={() => setActiveSub(null)}
+          >
+            All
+          </button>
+          {subs.map(s => (
+            <button
+              key={s.label}
+              className={`feed-subcat${activeSub === s.label ? ' feed-subcat--active' : ''}`}
+              onClick={() => setActiveSub(activeSub === s.label ? null : s.label)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Type filter chips ─────────────────────────── */}
+      <div className="feed-chips">
+        {(['all', 'news', 'podcast', 'clip'] as TypeFilter[]).map(f => (
+          <button
+            key={f}
+            className={`feed-chip${typeFilter === f ? ' feed-chip--active' : ''}`}
+            onClick={() => setTypeFilter(f)}
+          >
+            {f === 'all' ? 'All' : f === 'podcast' ? 'Podcasts' : f === 'news' ? 'News' : 'Clips'}
           </button>
         ))}
       </div>
 
-      {/* Content */}
+      {/* ── Content ───────────────────────────────────── */}
       <div className="feed-scroll">
         {loading && (
-          <div className="feed-loading"><div className="feed-spinner" /><p>Loading your feed…</p></div>
+          <div className="feed-loading"><div className="feed-spinner" /><p>Loading{activeInterest ? ` ${INTEREST_LABELS[activeInterest] ?? activeInterest}` : ' your feed'}…</p></div>
         )}
         {!loading && error && (
           <div className="empty"><Icon name="feed" size={48} /><h3>Could not load feed</h3><p>{error}</p></div>
         )}
-        {!loading && !error && filtered.length === 0 && (
-          <div className="empty"><Icon name="feed" size={48} /><h3>No content yet</h3><p>The feed is being updated. Check back soon.</p></div>
+        {!loading && !error && visible.length === 0 && (
+          <div className="empty">
+            <Icon name="feed" size={48} />
+            <h3>{activeSub ? `No ${activeSub} content` : 'No content yet'}</h3>
+            <p>{activeSub ? `Try removing the sub-filter or check back later.` : 'The feed is being updated. Check back soon.'}</p>
+          </div>
         )}
 
-        {!loading && !error && filtered.length > 0 && (
-          showGrouped && groups.length > 0 ? (
-            // Grouped by interest
+        {!loading && !error && visible.length > 0 && (
+          showGrouped ? (
             <div className="feed-groups">
-              {groups.map(({ label, items }) => (
+              {forYouGroups.map(({ label, items: grpItems }) => (
                 <section key={label} className="feed-group">
-                  <h2 className="feed-group__label">{label}</h2>
+                  <h2 className="feed-group__label">
+                    {label}
+                    <button
+                      className="feed-group__see-all"
+                      onClick={() => switchInterest(
+                        Object.keys(INTEREST_LABELS).find(k => INTEREST_LABELS[k] === label) ?? null
+                      )}
+                    >
+                      See all →
+                    </button>
+                  </h2>
                   <div className="feed-grid">
-                    {items.map(item => (
+                    {grpItems.slice(0, 4).map(item => (
                       <FeedCard key={item.id} item={item} onDetail={setDetail} />
                     ))}
                   </div>
@@ -232,7 +420,7 @@ export function FeedPage() {
             </div>
           ) : (
             <div className="feed-grid">
-              {filtered.map(item => (
+              {visible.map(item => (
                 <FeedCard key={item.id} item={item} onDetail={setDetail} />
               ))}
             </div>
