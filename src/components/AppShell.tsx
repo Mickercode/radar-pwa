@@ -3,26 +3,26 @@ import { PwaInstall } from './PwaInstall';
 import { Icon } from './Icon';
 
 const LEFT_NAV  = [
-  { to: '/',         icon: 'feed'       as const, label: 'Feed'     },
-  { to: '/clips',    icon: 'play'       as const, label: 'Clips'    },
-  { to: '/podcasts', icon: 'headphones' as const, label: 'Podcasts' },
+  { to: '/',      icon: 'feed'     as const, label: 'Feed'  },
+  { to: '/saved', icon: 'bookmark' as const, label: 'Saved' },
 ] as const;
 
 const RIGHT_NAV = [
-  { to: '/brain',    icon: 'brain'      as const, label: 'Brain'    },
-  { to: '/notebook', icon: 'notebook'   as const, label: 'Notes'    },
-  { to: '/profile',  icon: 'profile'    as const, label: 'You'      },
+  { to: '/brain',   icon: 'brain'   as const, label: 'Brain' },
+  { to: '/profile', icon: 'profile' as const, label: 'You'   },
 ] as const;
 
-// Pages that are main tabs (logo shown)
-const MAIN_PATHS = new Set(['/', '/clips', '/podcasts', '/brain', '/notebook', '/profile']);
+// Pages that show the logo top-bar (no back button)
+const MAIN_PATHS = new Set(['/', '/saved', '/brain', '/profile', '/clips', '/podcasts', '/notebook']);
 
-// Sub-page title + optional right action
+// Sub-page back targets
 const SUB_PAGE_META: Record<string, { title: string; back: string }> = {
-  '/settings': { title: 'Settings',    back: '/'       },
-  '/saved':    { title: 'Saved',       back: '/'       },
-  '/capture':  { title: 'Capture',     back: '/'       },
-  '/notebook': { title: 'Notebook',    back: '/'       },
+  '/settings':  { title: 'Settings',    back: '/profile' },
+  '/capture':   { title: 'Capture',     back: '/'        },
+  '/notebook':  { title: 'Notebook',    back: '/profile' },
+  '/subscribe': { title: 'Premium',     back: '/profile' },
+  '/clips':     { title: 'Clips',       back: '/'        },
+  '/podcasts':  { title: 'Podcasts',    back: '/'        },
 };
 
 export function AppShell() {
@@ -37,25 +37,20 @@ export function AppShell() {
       {/* ── Top bar ───────────────────────────────── */}
       <nav className="nav">
         {isMain ? (
-          /* Main pages: logo on left */
           <>
             <div className="nav__brand">
               <img src="/assets/logo.jpeg" alt="Radar" className="nav__logo-img" />
             </div>
             <div className="nav__spacer" />
-            <NavLink to="/saved" className="icon-btn" aria-label="Saved">
-              <Icon name="bookmark" size={20} />
-            </NavLink>
             <NavLink to="/settings" className="icon-btn" aria-label="Settings">
               <Icon name="settings" size={20} />
             </NavLink>
           </>
         ) : (
-          /* Sub-pages: back button + title */
           <>
             <button
               className="icon-btn nav__back"
-              onClick={() => navigate(subMeta?.back ?? -1 as never)}
+              onClick={() => navigate(subMeta?.back ?? (-1 as never))}
               aria-label="Go back"
             >
               <Icon name="left" size={20} />
@@ -88,7 +83,7 @@ export function AppShell() {
           </NavLink>
         ))}
 
-        {/* Centre FAB */}
+        {/* Centre FAB — Capture */}
         <button
           className="dock__fab"
           onClick={() => navigate('/capture')}
