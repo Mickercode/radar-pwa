@@ -3558,13 +3558,35 @@ a {
   gap: 0.5rem;
 }
 
+/* Icon mark (cyan R on dark square) */
+.auth-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+.auth-logo-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 22px;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 8px 28px -8px rgba(0, 194, 203, 0.35);
+}
+/* Full wordmark ("R | Radar") shown below the icon */
+.auth-wordmark {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 0.2rem;
+}
+/* Legacy — keep for anything still using .auth-logo-img */
 .auth-logo-img {
   height: 48px;
   width: auto;
   object-fit: contain;
   display: block;
   margin: 0 auto 0.25rem;
-  border-radius: var(--r-sm);
 }
 
 .auth-title {

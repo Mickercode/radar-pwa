@@ -158,7 +158,10 @@ export function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-head">
-          <img src="/assets/logo-wide.jpeg" alt="Radar" className="auth-logo-img" />
+          <div className="auth-logo-wrap">
+            <img src="/assets/logo-icon.jpeg" alt="Radar icon" className="auth-logo-icon" />
+          </div>
+          <img src="/assets/logo-wide.jpeg" alt="Radar" className="auth-wordmark" />
           <p className="auth-sub">Understand once. Remember forever.</p>
         </div>
 
