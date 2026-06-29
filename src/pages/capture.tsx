@@ -5,68 +5,136 @@ import { saveItem } from '../lib/saved';
 import type { ContentItem } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 
+type CaptureMode  = 'link' | 'file';
 type CaptureState = 'input' | 'loading' | 'result' | 'error';
+
+const ACCEPTED_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
+  'text/plain',
+];
+const ACCEPTED_EXTS = '.pdf,.doc,.docx,.txt';
+const MAX_FILE_MB   = 10;
+
+function fileLabel(f: File): string {
+  const mb = (f.size / (1024 * 1024)).toFixed(1);
+  return `${f.name} · ${mb} MB`;
+}
 
 export function CapturePage() {
   const navigate = useNavigate();
-  const [url, setUrl]           = useState('');
+
+  const [mode, setMode]         = useState<CaptureMode>('link');
   const [state, setState]       = useState<CaptureState>('input');
-  const [saving, setSaving]     = useState(false);
+  const [url, setUrl]           = useState('');
+  const [file, setFile]         = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [result, setResult]     = useState<CapturedInsight | null>(null);
   const [error, setError]       = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [saving, setSaving]     = useState(false);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  const urlRef  = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  const isValidUrl = (u: string) =>
-    /^https?:\/\/.+\..+/i.test(u.trim());
+  useEffect(() => { if (mode === 'link') urlRef.current?.focus(); }, [mode]);
+
+  // ── Validation ─────────────────────────────────────────────────────────────
+
+  const isValidUrl = (u: string) => /^https?:\/\/.+\..+/i.test(u.trim());
+
+  function validateFile(f: File): string | null {
+    if (!ACCEPTED_TYPES.includes(f.type) && !f.name.match(/\.(pdf|docx?|txt)$/i)) {
+      return 'Only PDF, Word (.doc/.docx), or text (.txt) files are supported.';
+    }
+    if (f.size > MAX_FILE_MB * 1024 * 1024) {
+      return `File is too large. Maximum size is ${MAX_FILE_MB} MB.`;
+    }
+    return null;
+  }
+
+  // ── File selection ──────────────────────────────────────────────────────────
+
+  function pickFile(f: File) {
+    const err = validateFile(f);
+    if (err) { setError(err); return; }
+    setFile(f);
+    setError('');
+  }
+
+  function onFileInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (f) pickFile(f);
+    e.target.value = '';
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files[0];
+    if (f) pickFile(f);
+  }
+
+  // ── Capture ─────────────────────────────────────────────────────────────────
 
   const handleCapture = useCallback(async () => {
-    const trimmed = url.trim();
-    if (!isValidUrl(trimmed)) {
-      setError('Enter a valid URL starting with http:// or https://');
+    setError('');
+
+    if (mode === 'link') {
+      if (!isValidUrl(url)) {
+        setError('Enter a valid URL starting with https://');
+        return;
+      }
+      setState('loading');
+      try {
+        setResult(await api.capture(url.trim()));
+        setState('result');
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Capture failed. Check the URL and try again.');
+        setState('error');
+      }
       return;
     }
 
+    // File mode
+    if (!file) { setError('Choose a file first.'); return; }
     setState('loading');
-    setError('');
-
     try {
-      const insight = await api.capture(trimmed);
-      setResult(insight);
+      setResult(await api.analyseFile(file));
       setState('result');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Capture failed. Check the URL and try again.');
+      setError(e instanceof Error ? e.message : 'Could not analyse file. Try again.');
       setState('error');
     }
-  }, [url]);
+  }, [mode, url, file]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleCapture();
-  };
+  // ── Save ─────────────────────────────────────────────────────────────────────
 
-  const handleSaveToBrain = useCallback(() => {
+  const handleSave = useCallback(() => {
     if (!result) return;
     setSaving(true);
 
-    // Convert CapturedInsight → ContentItem → SavedItem
+    const sourceHost = result.sourceUrl
+      ? (() => { try { return new URL(result.sourceUrl).hostname.replace(/^www\./, ''); } catch { return result.sourceUrl; } })()
+      : (file?.name ?? 'uploaded file');
+
     const item: ContentItem = {
       id: 'capture:' + Date.now(),
       type: 'news',
       title: result.title,
-      source: new URL(result.sourceUrl).hostname.replace(/^www\./, ''),
+      source: sourceHost,
       duration: 0,
-      articleUrl: result.sourceUrl,
+      articleUrl: result.sourceUrl ?? undefined,
       createdAt: new Date().toISOString(),
       summary: {
-        id: 'capture:' + Date.now(),
-        contentId: 'capture:' + Date.now(),
+        id: 'cap:' + Date.now(),
+        contentId: 'cap:' + Date.now(),
         summary: result.what,
-        keyTakeaways: result.keyTakeaways,
+        keyTakeaways: result.keyTakeaways ?? [],
         whyItMatters: result.why,
         what: result.what,
         howItMattersToYou: result.howItMattersToYou,
-        glossary: result.glossary,
+        glossary: result.glossary ?? [],
         tier: result.tier,
         nigeriaRelevance: result.nigeriaRelevance,
       },
@@ -74,132 +142,43 @@ export function CapturePage() {
 
     saveItem(item);
     setSaving(false);
-    // Flash saved confirmation, then navigate to brain
-    setTimeout(() => navigate('/brain'), 1200);
-  }, [result, navigate]);
+    setTimeout(() => navigate('/saved'), 1000);
+  }, [result, file, navigate]);
 
-  const handleTryAgain = () => {
+  const reset = () => {
     setState('input');
     setResult(null);
     setError('');
+    setFile(null);
   };
 
-  return (
-    <div className="capture-page">
-      {/* Page header */}
-      <div className="capture-head">
-        <p className="capture-kicker">Save & Summarize</p>
-        <h1 className="capture-title">Capture</h1>
-        <p className="capture-sub">Paste any URL to get an AI-powered insight preview — summarized, analyzed, and ready to save.</p>
-      </div>
+  // ── Shared result view ───────────────────────────────────────────────────────
 
-      {/* ── INPUT STATE ── */}
-      {state === 'input' && (
-        <div className="capture-input-area">
-          <div className="capture-url-wrap">
-            <Icon name="link" size={18} className="capture-url-icon" />
-            <input
-              ref={inputRef}
-              className="capture-url-input"
-              type="url"
-              placeholder="Paste a URL — article, podcast, video…"
-              value={url}
-              onChange={(e) => { setUrl(e.target.value); setError(''); }}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              spellCheck={false}
-            />
-          </div>
-          {error && <p className="capture-error">{error}</p>}
-          <button
-            className="btn btn--primary capture-go"
-            onClick={handleCapture}
-            disabled={!url.trim()}
-          >
-            <Icon name="spark" size={18} />
-            Capture & Summarize
-          </button>
-
-          <div className="capture-hints">
-            <div className="capture-hint">
-              <Icon name="feed" size={14} />
-              <span>News articles & analysis</span>
-            </div>
-            <div className="capture-hint">
-              <Icon name="headphones" size={14} />
-              <span>Podcast episodes & transcripts</span>
-            </div>
-            <div className="capture-hint">
-              <Icon name="play" size={14} />
-              <span>Video clips & YouTube links</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── LOADING STATE ── */}
-      {state === 'loading' && (
-        <div className="capture-loading">
-          <div className="capture-loading-ring" />
-          <div className="capture-loading-text">
-            <h3>Reading & analyzing…</h3>
-            <p>Radar AI is extracting key insights from this page.</p>
-          </div>
-          <div className="capture-shimmer">
-            <div className="capture-shimmer__line" style={{ width: '75%' }} />
-            <div className="capture-shimmer__line" style={{ width: '55%' }} />
-            <div className="capture-shimmer__line" style={{ width: '65%' }} />
-            <div className="capture-shimmer__line capture-shimmer__line--short" style={{ width: '40%' }} />
-          </div>
-        </div>
-      )}
-
-      {/* ── ERROR STATE ── */}
-      {state === 'error' && (
-        <div className="capture-error-state">
-          <Icon name="x" size={40} />
-          <h3>Could not capture</h3>
-          <p>{error}</p>
-          <div className="capture-error-actions">
-            <button className="btn" onClick={handleTryAgain}>
-              <Icon name="left" size={16} /> Try again
-            </button>
-            <button className="btn btn--primary" onClick={() => {
-              setError('');
-              setState('input');
-            }}>
-              Edit URL
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── RESULT STATE ── */}
-      {state === 'result' && result && (
+  if (state === 'result' && result) {
+    return (
+      <div className="capture-page">
         <div className="capture-result">
-          {/* Source URL bar */}
+          {/* Source bar */}
           <div className="capture-result-bar">
-            <a
-              href={result.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="capture-result-url"
-            >
-              <Icon name="link" size={13} />
-              <span>{result.sourceUrl.replace(/^https?:\/\//, '').replace(/\/.*/, '')}</span>
-            </a>
-            <span className="capture-badge capture-badge--tier">
-              Tier {result.tier}
-            </span>
+            {result.sourceUrl ? (
+              <a href={result.sourceUrl} target="_blank" rel="noopener noreferrer" className="capture-result-url">
+                <Icon name="link" size={13} />
+                <span>{(() => { try { return new URL(result.sourceUrl).hostname.replace(/^www\./, ''); } catch { return result.sourceUrl; } })()}</span>
+              </a>
+            ) : (
+              <span className="capture-result-url">
+                <Icon name="upload" size={13} />
+                <span>{file?.name ?? 'Uploaded file'}</span>
+              </span>
+            )}
+            <span className="capture-badge capture-badge--tier">Tier {result.tier}</span>
             {result.nigeriaRelevance >= 2 && (
               <span className="capture-badge capture-badge--ng">🇳🇬 Nigeria</span>
             )}
           </div>
 
-          {/* Title */}
           <h2 className="capture-result-title">{result.title}</h2>
 
-          {/* What */}
           {result.what && (
             <section className="capture-section">
               <h3 className="capture-section-label capture-section-label--what">What</h3>
@@ -207,19 +186,15 @@ export function CapturePage() {
             </section>
           )}
 
-          {/* Key Takeaways */}
-          {result.keyTakeaways.length > 0 && (
+          {(result.keyTakeaways?.length ?? 0) > 0 && (
             <section className="capture-section">
               <h3 className="capture-section-label capture-section-label--takeaways">Key Takeaways</h3>
               <ul className="capture-takeaways">
-                {result.keyTakeaways.map((t, i) => (
-                  <li key={i}>{t}</li>
-                ))}
+                {result.keyTakeaways.map((t, i) => <li key={i}>{t}</li>)}
               </ul>
             </section>
           )}
 
-          {/* Why It Matters */}
           {result.why && (
             <section className="capture-section">
               <h3 className="capture-section-label capture-section-label--why">Why It Matters</h3>
@@ -227,7 +202,6 @@ export function CapturePage() {
             </section>
           )}
 
-          {/* How It Matters to You */}
           {result.howItMattersToYou && (
             <section className="capture-section capture-section--edge">
               <div className="capture-section-label-amber">
@@ -238,14 +212,13 @@ export function CapturePage() {
             </section>
           )}
 
-          {/* Glossary */}
-          {result.glossary.length > 0 && (
+          {(result.glossary?.length ?? 0) > 0 && (
             <section className="capture-section capture-section--glossary">
               <h3 className="capture-section-label capture-section-label--glossary">Glossary</h3>
               {result.glossary.map((entry, i) => {
                 const colon = entry.indexOf(':');
                 const term = colon > -1 ? entry.slice(0, colon).trim() : entry;
-                const def = colon > -1 ? entry.slice(colon + 1).trim() : '';
+                const def  = colon > -1 ? entry.slice(colon + 1).trim() : '';
                 return (
                   <div key={i} className="capture-gloss-entry">
                     <span className="capture-gloss-term">{term}</span>
@@ -256,29 +229,182 @@ export function CapturePage() {
             </section>
           )}
 
-          {/* Action bar */}
           <div className="capture-actions">
-            <button className="btn" onClick={handleTryAgain}>
+            <button className="btn" onClick={reset}>
               <Icon name="left" size={16} /> New capture
             </button>
-            <button className="btn btn--primary" onClick={handleSaveToBrain} disabled={saving}>
-              {saving ? (
-                <>Saving…</>
-              ) : (
-                <><Icon name="brain" size={18} /> Save to Brain</>
-              )}
+            <button className="btn btn--primary" onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving…' : <><Icon name="bookmark" size={18} /> Save to Knowledge</>}
+            </button>
+          </div>
+        </div>
+
+        {saving && (
+          <div className="capture-saved-overlay">
+            <div className="capture-saved-card">
+              <Icon name="check" size={32} />
+              <h3>Saved!</h3>
+              <p>Opening My Knowledge…</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Input / loading / error ───────────────────────────────────────────────────
+
+  return (
+    <div className="capture-page">
+      <div className="capture-head">
+        <p className="capture-kicker">Save & Understand</p>
+        <h1 className="capture-title">Capture</h1>
+        <p className="capture-sub">
+          Paste a link or upload a file — Radar AI turns it into a sharp, readable insight.
+        </p>
+      </div>
+
+      {/* Mode tabs */}
+      <div className="capture-tabs">
+        <button
+          className={`capture-tab${mode === 'link' ? ' capture-tab--active' : ''}`}
+          onClick={() => { setMode('link'); reset(); }}
+        >
+          <Icon name="link" size={15} /> Link
+        </button>
+        <button
+          className={`capture-tab${mode === 'file' ? ' capture-tab--active' : ''}`}
+          onClick={() => { setMode('file'); reset(); }}
+        >
+          <Icon name="upload" size={15} /> File
+        </button>
+      </div>
+
+      {/* ── LOADING ── */}
+      {state === 'loading' && (
+        <div className="capture-loading">
+          <div className="capture-loading-ring" />
+          <div className="capture-loading-text">
+            <h3>{mode === 'file' ? 'Reading your file…' : 'Reading & analysing…'}</h3>
+            <p>Radar AI is extracting key insights{mode === 'file' ? ' from your document' : ' from this page'}.</p>
+          </div>
+          <div className="capture-shimmer">
+            <div className="capture-shimmer__line" style={{ width: '75%' }} />
+            <div className="capture-shimmer__line" style={{ width: '55%' }} />
+            <div className="capture-shimmer__line" style={{ width: '65%' }} />
+            <div className="capture-shimmer__line capture-shimmer__line--short" style={{ width: '40%' }} />
+          </div>
+        </div>
+      )}
+
+      {/* ── ERROR ── */}
+      {state === 'error' && (
+        <div className="capture-error-state">
+          <Icon name="x" size={40} />
+          <h3>Could not capture</h3>
+          <p>{error}</p>
+          <div className="capture-error-actions">
+            <button className="btn" onClick={reset}>
+              <Icon name="left" size={16} /> Try again
             </button>
           </div>
         </div>
       )}
 
-      {/* ── SAVING overlay ── */}
-      {saving && (
-        <div className="capture-saved-overlay">
-          <div className="capture-saved-card">
-            <Icon name="check" size={32} />
-            <h3>Saved to your brain</h3>
-            <p>This insight is now in your Knowledge Web.</p>
+      {/* ── INPUT: LINK ── */}
+      {state === 'input' && mode === 'link' && (
+        <div className="capture-input-area">
+          <div className="capture-url-wrap">
+            <Icon name="link" size={18} className="capture-url-icon" />
+            <input
+              ref={urlRef}
+              className="capture-url-input"
+              type="url"
+              placeholder="Paste a URL — article, podcast, video…"
+              value={url}
+              onChange={(e) => { setUrl(e.target.value); setError(''); }}
+              onKeyDown={(e) => e.key === 'Enter' && handleCapture()}
+              spellCheck={false}
+            />
+            {url && (
+              <button className="capture-url-clear" onClick={() => setUrl('')} aria-label="Clear">
+                <Icon name="x" size={14} />
+              </button>
+            )}
+          </div>
+          {error && <p className="capture-error">{error}</p>}
+          <button
+            className="btn btn--primary capture-go"
+            onClick={handleCapture}
+            disabled={!url.trim()}
+          >
+            <Icon name="spark" size={18} />
+            Capture & Summarise
+          </button>
+
+          <div className="capture-hints">
+            <div className="capture-hint"><Icon name="feed" size={14} /><span>News articles & analysis</span></div>
+            <div className="capture-hint"><Icon name="headphones" size={14} /><span>Podcast episodes</span></div>
+            <div className="capture-hint"><Icon name="play" size={14} /><span>YouTube videos</span></div>
+          </div>
+        </div>
+      )}
+
+      {/* ── INPUT: FILE ── */}
+      {state === 'input' && mode === 'file' && (
+        <div className="capture-input-area">
+          {/* Drop zone */}
+          <div
+            className={`capture-dropzone${dragOver ? ' capture-dropzone--over' : ''}${file ? ' capture-dropzone--has-file' : ''}`}
+            onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+            role="button"
+            tabIndex={0}
+            aria-label="Choose file to upload"
+            onKeyDown={(e) => e.key === 'Enter' && fileRef.current?.click()}
+          >
+            <input
+              ref={fileRef}
+              type="file"
+              accept={ACCEPTED_EXTS}
+              className="capture-file-input"
+              onChange={onFileInput}
+            />
+            {file ? (
+              <div className="capture-dropzone-file">
+                <Icon name="save" size={28} />
+                <p className="capture-dropzone-name">{fileLabel(file)}</p>
+                <p className="capture-dropzone-change">Tap to change</p>
+              </div>
+            ) : (
+              <div className="capture-dropzone-empty">
+                <Icon name="upload" size={36} />
+                <p className="capture-dropzone-label">
+                  {dragOver ? 'Drop it!' : 'Tap to choose a file'}
+                </p>
+                <p className="capture-dropzone-hint">PDF · Word (.doc / .docx) · Plain text (.txt)</p>
+                <p className="capture-dropzone-hint">Max {MAX_FILE_MB} MB · 5 free uploads/month</p>
+              </div>
+            )}
+          </div>
+
+          {error && <p className="capture-error">{error}</p>}
+
+          <button
+            className="btn btn--primary capture-go"
+            onClick={handleCapture}
+            disabled={!file}
+          >
+            <Icon name="spark" size={18} />
+            Analyse File
+          </button>
+
+          <div className="capture-hints">
+            <div className="capture-hint"><Icon name="save" size={14} /><span>Research papers & reports</span></div>
+            <div className="capture-hint"><Icon name="notebook" size={14} /><span>Study notes & textbooks</span></div>
+            <div className="capture-hint"><Icon name="feed" size={14} /><span>Business documents & contracts</span></div>
           </div>
         </div>
       )}

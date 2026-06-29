@@ -165,4 +165,23 @@ export const api = {
       return res.json() as Promise<CapturedInsight>;
     });
   },
+
+  analyseFile: (file: File) => {
+    const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+    const form = new FormData();
+    form.append('file', file);
+    return fetch(BASE + '/content/analyse/upload', {
+      method: 'POST',
+      headers: authHeaders(), // no Content-Type — browser sets multipart boundary
+      body: form,
+    }).then(async (res) => {
+      if (!res.ok) {
+        const msg = await res.text().catch(() => '');
+        // Surface the friendly 402 limit message
+        if (res.status === 402) throw new Error(msg || 'Monthly upload limit reached. Upgrade to premium.');
+        throw new Error(`Upload ${res.status}: ${msg}`);
+      }
+      return res.json() as Promise<CapturedInsight>;
+    });
+  },
 };
