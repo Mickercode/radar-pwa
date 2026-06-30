@@ -20,6 +20,7 @@ import { ResetPasswordPage } from './pages/reset-password';
 import { OnboardingPage } from './pages/onboarding';
 import { SubscribePage } from './pages/subscribe';
 import { NotFoundPage } from './pages/not-found';
+import { AdminPage } from './pages/admin';
 
 /** Syncs BE data on login and re-registers push if permission already granted. */
 function SyncOnLogin() {
@@ -99,6 +100,7 @@ export function App() {
             <Route path="profile"   element={<ProfilePage />} />
             <Route path="settings"  element={<SettingsPage />} />
             <Route path="subscribe" element={<SubscribePage />} />
+            <Route path="admin"     element={<AdminPage />} />
             <Route path="*"         element={<NotFoundPage />} />
           </Route>
         </Routes>

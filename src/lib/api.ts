@@ -166,6 +166,8 @@ export const api = {
     });
   },
 
+  adminStats: () => get<import('../pages/admin').AdminStats>('/admin/stats'),
+
   analyseFile: (file: File) => {
     const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
     const form = new FormData();
