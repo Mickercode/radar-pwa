@@ -9,6 +9,36 @@ type View   = 'list' | 'detail';
 const TYPE_LABELS: Record<string, string> = { news: 'Article', podcast: 'Podcast', clip: 'Clip' };
 const TYPE_ICONS  = { news: 'feed', podcast: 'headphones', clip: 'play' } as const;
 
+// ── Persona parser ────────────────────────────────────────────────────────────
+// Splits "If you are a X: ..." paragraphs into labelled blocks.
+// Falls back to a single prose block if no persona pattern is found.
+function parsePersonas(text: string): { label: string; body: string }[] | null {
+  const parts = text.split(/(?=If you are )/i).map(s => s.trim()).filter(Boolean);
+  if (parts.length < 2) return null;
+  return parts.map(part => {
+    const colon = part.indexOf(':');
+    if (colon === -1) return { label: '', body: part };
+    return { label: part.slice(0, colon).trim(), body: part.slice(colon + 1).trim() };
+  });
+}
+
+function PersonaSection({ text }: { text: string }) {
+  const personas = parsePersonas(text);
+  if (!personas) {
+    return <p className="kn__prose kn__prose--edge">{text}</p>;
+  }
+  return (
+    <div className="kn__personas">
+      {personas.map((p, i) => (
+        <div key={i} className="kn__persona">
+          {p.label && <p className="kn__persona-label">{p.label}</p>}
+          <p className="kn__persona-body">{p.body}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Date grouping ─────────────────────────────────────────────────────────────
 
 function dayLabel(iso: string): string {
@@ -148,7 +178,7 @@ export function KnowledgePage() {
             {selected.howItMattersToYou && (
               <section className="kn__section kn__section--edge">
                 <h2 className="kn__section-h kn__section-h--edge">How It Matters to You</h2>
-                <p className="kn__prose kn__prose--edge">{selected.howItMattersToYou}</p>
+                <PersonaSection text={selected.howItMattersToYou} />
               </section>
             )}
 

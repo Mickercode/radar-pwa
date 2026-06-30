@@ -1588,6 +1588,28 @@ a {
 .kn__prose { font-size: var(--step-0); color: var(--text); line-height: 1.75; }
 .kn__prose--edge { color: var(--text); }
 
+/* ── Persona cards inside "How It Matters to You" ── */
+.kn__personas { display: flex; flex-direction: column; gap: 0.75rem; }
+.kn__persona {
+  background: var(--bg-2);
+  border-left: 3px solid #f2b441;
+  border-radius: 0 var(--r) var(--r) 0;
+  padding: 0.75rem 1rem;
+}
+.kn__persona-label {
+  font-size: var(--step--1);
+  font-weight: 700;
+  color: #f2b441;
+  margin: 0 0 0.35rem;
+  text-transform: capitalize;
+}
+.kn__persona-body {
+  font-size: var(--step-0);
+  color: var(--text);
+  line-height: 1.65;
+  margin: 0;
+}
+
 .kn__gloss { margin-bottom: 0.75rem; }
 .kn__gloss-term { display: block; font-weight: 700; color: var(--amber); font-size: var(--step--1); margin-bottom: 0.15rem; }
 .kn__gloss-def  { font-size: var(--step--1); color: var(--text-dim); line-height: 1.5; }

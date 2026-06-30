@@ -5,6 +5,31 @@ import { saveItem } from '../lib/saved';
 import type { ContentItem } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 
+function parsePersonas(text: string): { label: string; body: string }[] | null {
+  const parts = text.split(/(?=If you are )/i).map(s => s.trim()).filter(Boolean);
+  if (parts.length < 2) return null;
+  return parts.map(part => {
+    const colon = part.indexOf(':');
+    if (colon === -1) return { label: '', body: part };
+    return { label: part.slice(0, colon).trim(), body: part.slice(colon + 1).trim() };
+  });
+}
+
+function PersonaSection({ text }: { text: string }) {
+  const personas = parsePersonas(text);
+  if (!personas) return <p className="capture-edge-text">{text}</p>;
+  return (
+    <div className="kn__personas">
+      {personas.map((p, i) => (
+        <div key={i} className="kn__persona">
+          {p.label && <p className="kn__persona-label">{p.label}</p>}
+          <p className="kn__persona-body">{p.body}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 type CaptureMode  = 'link' | 'file';
 type CaptureState = 'input' | 'loading' | 'result' | 'error';
 
@@ -208,7 +233,7 @@ export function CapturePage() {
                 <span className="capture-dot-amber" />
                 <span>HOW IT MATTERS TO YOU</span>
               </div>
-              <p className="capture-edge-text">{result.howItMattersToYou}</p>
+              <PersonaSection text={result.howItMattersToYou} />
             </section>
           )}
 
