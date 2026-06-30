@@ -206,7 +206,7 @@ export function CapturePage() {
             <section className="capture-section capture-section--edge">
               <div className="capture-section-label-amber">
                 <span className="capture-dot-amber" />
-                <span>THE EDGE</span>
+                <span>HOW IT MATTERS TO YOU</span>
               </div>
               <p className="capture-edge-text">{result.howItMattersToYou}</p>
             </section>

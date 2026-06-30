@@ -1563,6 +1563,17 @@ a {
   color: var(--cyan);
   margin-bottom: 0.7rem;
 }
+.kn__section-h--takeaways { color: var(--cyan); }
+.kn__section-h--why       { color: var(--lime); }
+.kn__section-h--edge      { color: #f2b441; }
+
+.kn__section--edge {
+  background: rgba(242,180,65,0.05);
+  border: 1px solid rgba(242,180,65,0.18);
+  border-radius: var(--r);
+  padding: 1rem 1.1rem;
+  margin-top: 0.25rem;
+}
 
 .kn__takeaways { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
 .kn__takeaways li {
@@ -1575,6 +1586,7 @@ a {
 .kn__takeaways li::before { content: '→'; position: absolute; left: 0; color: var(--cyan); font-weight: 700; }
 
 .kn__prose { font-size: var(--step-0); color: var(--text); line-height: 1.75; }
+.kn__prose--edge { color: var(--text); }
 
 .kn__gloss { margin-bottom: 0.75rem; }
 .kn__gloss-term { display: block; font-weight: 700; color: var(--amber); font-size: var(--step--1); margin-bottom: 0.15rem; }

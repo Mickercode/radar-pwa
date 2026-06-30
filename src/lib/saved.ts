@@ -29,6 +29,7 @@ export interface SavedItem {
   externalId?: string;
   summary?: string;
   keyTakeaways: string[];
+  whyItMatters?: string;
   howItMattersToYou?: string;
   glossary: string[];
   savedAt: string;
@@ -68,6 +69,7 @@ export async function syncSavedFromBE(): Promise<void> {
       externalId: content.externalId,
       summary: content.summary?.what ?? content.summary?.summary,
       keyTakeaways: content.summary?.keyTakeaways ?? [],
+      whyItMatters: content.summary?.whyItMatters,
       howItMattersToYou: content.summary?.howItMattersToYou,
       glossary: content.summary?.glossary ?? [],
       savedAt: content.createdAt,

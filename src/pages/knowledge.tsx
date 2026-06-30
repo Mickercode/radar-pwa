@@ -127,13 +127,9 @@ export function KnowledgePage() {
             </p>
             <h1 className="kn__detail-title">{selected.title}</h1>
 
-            {selected.summary && (
-              <p className="kn__detail-summary">{selected.summary}</p>
-            )}
-
             {selected.keyTakeaways.length > 0 && (
               <section className="kn__section">
-                <h2 className="kn__section-h">Key Takeaways</h2>
+                <h2 className="kn__section-h kn__section-h--takeaways">Key Takeaways</h2>
                 <ul className="kn__takeaways">
                   {selected.keyTakeaways.map((t, i) => (
                     <li key={i}>{t}</li>
@@ -142,10 +138,17 @@ export function KnowledgePage() {
               </section>
             )}
 
-            {selected.howItMattersToYou && (
+            {selected.whyItMatters && (
               <section className="kn__section">
-                <h2 className="kn__section-h">Why It Matters to You</h2>
-                <p className="kn__prose">{selected.howItMattersToYou}</p>
+                <h2 className="kn__section-h kn__section-h--why">Why It Matters</h2>
+                <p className="kn__prose">{selected.whyItMatters}</p>
+              </section>
+            )}
+
+            {selected.howItMattersToYou && (
+              <section className="kn__section kn__section--edge">
+                <h2 className="kn__section-h kn__section-h--edge">How It Matters to You</h2>
+                <p className="kn__prose kn__prose--edge">{selected.howItMattersToYou}</p>
               </section>
             )}
 
