@@ -241,48 +241,43 @@ export function FeedPage() {
     return true;
   });
 
-  // Map DB topic slugs → interest slug. Each interest owns specific topic slugs;
-  // using this instead of keyword matching prevents politics from leaking into business.
-  const TOPIC_TO_INTEREST: Record<string, string> = {
-    politics: 'politics', government: 'politics', policy: 'politics',
-    economy: 'economy', markets: 'economy',
-    finance: 'finance', money: 'finance', crypto: 'finance', investment: 'finance',
-    business: 'business', startups: 'business',
-    tech: 'tech', technology: 'tech', ai: 'tech',
-    health: 'health', wellness: 'health', medicine: 'health',
-    science: 'science', research: 'science', space: 'science',
-    climate: 'climate', environment: 'climate', energy: 'climate',
-    sports: 'sports', football: 'sports', athletics: 'sports',
-    music: 'music', entertainment: 'music',
-    film: 'film', tv: 'film', cinema: 'film',
-    education: 'education', learning: 'education',
-    fashion: 'fashion', lifestyle: 'fashion', style: 'fashion',
-    travel: 'travel',
-    faith: 'faith', religion: 'faith', philosophy: 'faith',
+  const INTEREST_KEYWORDS: Record<string, string[]> = {
+    tech:       ['tech', 'ai', 'software', 'startup', 'app', 'digital', 'cyber', 'data', 'cloud', 'robot'],
+    business:   ['business', 'company', 'ceo', 'entrepreneur', 'trade', 'commerce', 'corporate'],
+    finance:    ['finance', 'bank', 'naira', 'dollar', 'invest', 'stock', 'crypto', 'money', 'fund'],
+    economy:    ['economy', 'gdp', 'inflation', 'budget', 'fiscal', 'monetary', 'revenue', 'imf', 'world bank'],
+    politics:   ['government', 'president', 'minister', 'election', 'senate', 'policy', 'law', 'political'],
+    science:    ['science', 'research', 'study', 'space', 'nasa', 'discovery', 'biology', 'physics'],
+    health:     ['health', 'hospital', 'covid', 'cancer', 'drug', 'medicine', 'diet', 'fitness', 'disease'],
+    climate:    ['climate', 'energy', 'solar', 'carbon', 'oil', 'gas', 'emission', 'environment', 'green'],
+    sports:     ['sport', 'football', 'super eagles', 'nfl', 'nba', 'soccer', 'athlete', 'league', 'match'],
+    music:      ['music', 'song', 'album', 'artist', 'concert', 'singer', 'afrobeat'],
+    film:       ['film', 'movie', 'series', 'netflix', 'cinema', 'actor', 'nollywood', 'tv show'],
+    education:  ['education', 'school', 'university', 'student', 'learning', 'teacher', 'academic'],
+    fashion:    ['fashion', 'style', 'design', 'brand', 'wear', 'cloth', 'luxury'],
+    travel:     ['travel', 'tourism', 'airline', 'hotel', 'airport', 'visa', 'destination'],
+    faith:      ['church', 'mosque', 'faith', 'religion', 'prayer', 'spiritual', 'god'],
   };
 
   function buildForYouGroups(): { label: string; items: ContentItem[] }[] {
     if (interests.length === 0) return [];
-    const buckets: Record<string, ContentItem[]> = {};
-    const unmatched: ContentItem[] = [];
-
-    for (const item of visible) {
-      const interest = item.topicSlug ? (TOPIC_TO_INTEREST[item.topicSlug] ?? null) : null;
-      if (interest && interests.includes(interest)) {
-        (buckets[interest] ??= []).push(item);
-      } else {
-        unmatched.push(item);
-      }
-    }
-
+    const used = new Set<string>();
     const groups: { label: string; items: ContentItem[] }[] = [];
+
     for (const slug of interests) {
-      const grp = buckets[slug];
-      if (grp && grp.length > 0) {
-        groups.push({ label: INTEREST_LABELS[slug] ?? slug, items: grp });
+      const kws = INTEREST_KEYWORDS[slug] ?? [];
+      const matched = visible.filter(i => {
+        if (used.has(i.id)) return false;
+        const hay = (i.title + ' ' + i.source + ' ' + (i.summary?.what ?? '')).toLowerCase();
+        return kws.some(k => hay.includes(k));
+      });
+      if (matched.length > 0) {
+        matched.forEach(i => used.add(i.id));
+        groups.push({ label: INTEREST_LABELS[slug] ?? slug, items: matched });
       }
     }
-    if (unmatched.length > 0) groups.push({ label: 'More for You', items: unmatched });
+    const rest = visible.filter(i => !used.has(i.id));
+    if (rest.length > 0) groups.push({ label: 'More for You', items: rest });
     return groups;
   }
 
