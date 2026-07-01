@@ -9,6 +9,27 @@ function authHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+/** Extract a human-readable message from an error response, never leaking raw JSON. */
+async function extractErrorMessage(res: Response): Promise<string> {
+  try {
+    const text = await res.text();
+    const json = JSON.parse(text) as Record<string, unknown>;
+    const msg = (json.error ?? json.message ?? json.msg) as string | undefined;
+    if (msg && typeof msg === 'string') return msg;
+  } catch { /* not JSON */ }
+  const GENERIC: Record<number, string> = {
+    400: 'Invalid request. Please check your input and try again.',
+    401: 'You need to sign in to do that.',
+    403: 'You don\'t have permission to do that.',
+    404: 'That resource could not be found.',
+    429: 'Too many requests. Please wait a moment and try again.',
+    500: 'Something went wrong on our end. Please try again.',
+    502: 'Service temporarily unreachable. Please try again.',
+    503: 'Service temporarily unavailable. Please try again later.',
+  };
+  return GENERIC[res.status] ?? 'Something went wrong. Please try again.';
+}
+
 /** Handle 401 responses — clear auth and redirect to login. */
 function handleAuthError(status: number): void {
   if (status === 401) {
@@ -161,7 +182,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ url }),
     }).then(async (res) => {
-      if (!res.ok) throw new Error(`Capture ${res.status}: ${await res.text().catch(() => '')}`);
+      if (!res.ok) throw new Error(await extractErrorMessage(res));
       return res.json() as Promise<CapturedInsight>;
     });
   },
@@ -178,10 +199,8 @@ export const api = {
       body: form,
     }).then(async (res) => {
       if (!res.ok) {
-        const msg = await res.text().catch(() => '');
-        // Surface the friendly 402 limit message
-        if (res.status === 402) throw new Error(msg || 'Monthly upload limit reached. Upgrade to premium.');
-        throw new Error(`Upload ${res.status}: ${msg}`);
+        if (res.status === 402) throw new Error('Monthly upload limit reached. Upgrade to premium.');
+        throw new Error(await extractErrorMessage(res));
       }
       return res.json() as Promise<CapturedInsight>;
     });
