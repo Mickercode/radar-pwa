@@ -44,9 +44,14 @@ function BrowseView({ onSelect }: { onSelect: (item: ContentItem) => void }) {
   const { play, pause, resume, track, playing } = usePlayer();
 
   useEffect(() => {
-    Promise.all([api.contentByType('podcast'), api.topics()])
-      .then(([pods, tops]) => { setItems(pods); setTopics(tops); setLoading(false); })
-      .catch(() => setLoading(false));
+    api.topics().then(setTopics).catch(() => {});
+    api.livePodcasts()
+      .then(pods => { setItems(pods); setLoading(false); })
+      .catch(() => {
+        api.contentByType('podcast')
+          .then(pods => { setItems(pods); setLoading(false); })
+          .catch(() => setLoading(false));
+      });
   }, []);
 
   function handleSearch() { setQuery(search.trim()); }
@@ -59,18 +64,21 @@ function BrowseView({ onSelect }: { onSelect: (item: ContentItem) => void }) {
     : items;
 
   const topicMap = Object.fromEntries(topics.map(t => [t.id, t]));
+  const slugMap = Object.fromEntries(topics.map(t => [t.slug, t]));
   const grouped: { topic: Topic | null; slug: string; items: ContentItem[] }[] = [];
   const seen = new Set<string>();
 
   filtered.forEach(item => {
-    const key = item.topicId ?? '__none__';
+    // Live items have no topicId but carry a topic slug directly
+    const rawSlug = item.topic;
+    const topic = item.topicId ? (topicMap[item.topicId] ?? null) : (rawSlug ? (slugMap[rawSlug] ?? null) : null);
+    const slug = topic?.slug ?? rawSlug ?? 'general';
+    const key = topic?.id ?? slug;
     if (!seen.has(key)) {
       seen.add(key);
-      const topic = item.topicId ? topicMap[item.topicId] ?? null : null;
-      grouped.push({ topic, slug: topic?.slug ?? 'general', items: [] });
+      grouped.push({ topic, slug, items: [] });
     }
-    const g = grouped.find(g => (item.topicId ? g.topic?.id === item.topicId : g.topic === null));
-    g?.items.push(item);
+    grouped.find(g => (topic ? g.topic?.id === topic.id : g.slug === slug))?.items.push(item);
   });
 
   function handlePlay(item: ContentItem) {

@@ -81,6 +81,8 @@ export interface ContentItem {
   externalId?: string;
   topicId?: string | null;
   topicSlug?: string;
+  /** Slug returned by live routes (no DB topicId available) */
+  topic?: string;
   createdAt: string;
   summary?: Summary;
 }
@@ -168,6 +170,8 @@ export const api = {
     get<ContentItem[]>('/content', { type }),
 
   liveClips: () => get<ContentItem[]>('/clips/live'),
+
+  livePodcasts: () => get<ContentItem[]>('/podcasts/live'),
 
   searchPodcasts: (q: string, max = 20) =>
     get<PodcastSearchResult>('/podcasts/search', { q, max: String(max) }),
