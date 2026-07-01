@@ -120,17 +120,6 @@ export function DetailView({ item, onClose }: Props) {
         {/* Title */}
         <h1 className="dv__title">{item.title}</h1>
 
-        {/* ── THE EDGE (How It Matters to You) ── */}
-        {(s?.howItMattersToYou) && (
-          <section className="dv__section dv__section--edge">
-            <div className="dv__section-label">
-              <span className="dv__dot dv__dot--amber" />
-              <span className="dv__label-text">THE EDGE</span>
-            </div>
-            <p className="dv__edge-text">{s.howItMattersToYou}</p>
-          </section>
-        )}
-
         {/* ── SUMMARY / WHAT ── */}
         {(s?.what || s?.summary) && (
           <section className="dv__section">
@@ -139,17 +128,6 @@ export function DetailView({ item, onClose }: Props) {
               <span className="dv__label-text">SUMMARY</span>
             </div>
             <p className="dv__summary-text">{s?.what ?? s?.summary}</p>
-          </section>
-        )}
-
-        {/* ── WHY IT MATTERS ── */}
-        {(s?.whyItMatters || s?.why) && (
-          <section className="dv__section">
-            <div className="dv__section-label">
-              <span className="dv__dot dv__dot--cyan" />
-              <span className="dv__label-text">WHY IT MATTERS</span>
-            </div>
-            <p className="dv__prose">{s?.whyItMatters ?? s?.why}</p>
           </section>
         )}
 
@@ -168,6 +146,28 @@ export function DetailView({ item, onClose }: Props) {
                 </li>
               ))}
             </ul>
+          </section>
+        )}
+
+        {/* ── WHY IT MATTERS ── */}
+        {(s?.whyItMatters || s?.why) && (
+          <section className="dv__section">
+            <div className="dv__section-label">
+              <span className="dv__dot dv__dot--cyan" />
+              <span className="dv__label-text">WHY IT MATTERS</span>
+            </div>
+            <p className="dv__prose">{s?.whyItMatters ?? s?.why}</p>
+          </section>
+        )}
+
+        {/* ── THE EDGE (How It Matters to You) ── */}
+        {(s?.howItMattersToYou) && (
+          <section className="dv__section dv__section--edge">
+            <div className="dv__section-label">
+              <span className="dv__dot dv__dot--amber" />
+              <span className="dv__label-text">THE EDGE</span>
+            </div>
+            <p className="dv__edge-text">{s.howItMattersToYou}</p>
           </section>
         )}
 
