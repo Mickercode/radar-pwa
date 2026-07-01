@@ -80,6 +80,7 @@ export interface ContentItem {
   videoUrl?: string;
   externalId?: string;
   topicId?: string | null;
+  topicSlug?: string;
   createdAt: string;
   summary?: Summary;
 }
