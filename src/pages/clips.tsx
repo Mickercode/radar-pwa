@@ -3,11 +3,6 @@ import { Icon } from '../components/Icon';
 import { api, type ContentItem } from '../lib/api';
 import { DetailView } from '../components/DetailView';
 
-function formatDuration(secs: number): string {
-  if (!secs) return '';
-  return secs < 60 ? `${secs}s` : `${Math.floor(secs / 60)}m ${secs % 60}s`;
-}
-
 function timeAgo(iso: string): string {
   const h = (Date.now() - new Date(iso).getTime()) / 3_600_000;
   if (h < 1) return `${Math.floor(h * 60)}m ago`;
@@ -21,15 +16,20 @@ export function ClipsPage() {
   const [selected, setSelected] = useState<ContentItem | null>(null);
 
   useEffect(() => {
-    api.contentByType('clip')
+    api.liveClips()
       .then((data) => { setItems(data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        // Fallback to DB clips if live fetch fails
+        api.contentByType('clip')
+          .then((data) => { setItems(data); setLoading(false); })
+          .catch(() => setLoading(false));
+      });
   }, []);
 
   return (
     <div className="clips-page">
       <div className="page-head">
-        <div className="page-kicker">Short & sharp</div>
+        <div className="page-kicker">Watch & Learn</div>
         <h1 className="page-title">Clips</h1>
       </div>
 
@@ -40,14 +40,18 @@ export function ClipsPage() {
       {!loading && items.length === 0 && (
         <div className="empty">
           <Icon name="play" size={48} />
-          <h3>No clips yet</h3>
-          <p>Short clips (15–60s) will appear here after the next ingest run.</p>
+          <h3>No clips right now</h3>
+          <p>Check back soon — new videos are pulled from YouTube every few hours.</p>
         </div>
       )}
 
       <div className="clips-grid">
         {items.map(item => (
-          <article key={item.id} className="clip-card" onClick={() => setSelected(item)}>
+          <article
+            key={item.id}
+            className="clip-card"
+            onClick={() => item.videoUrl ? window.open(item.videoUrl, '_blank', 'noopener') : setSelected(item)}
+          >
             <div className="clip-card__thumb">
               {item.thumbnailUrl
                 ? <img src={item.thumbnailUrl} alt="" loading="lazy" />
@@ -56,9 +60,6 @@ export function ClipsPage() {
               <div className="clip-card__play-overlay">
                 <Icon name="play" size={28} />
               </div>
-              {item.duration > 0 && (
-                <span className="clip-card__dur">{formatDuration(item.duration)}</span>
-              )}
             </div>
 
             <div className="clip-card__body">

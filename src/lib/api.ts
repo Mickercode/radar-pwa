@@ -167,6 +167,8 @@ export const api = {
   contentByType: (type: 'news' | 'podcast' | 'clip') =>
     get<ContentItem[]>('/content', { type }),
 
+  liveClips: () => get<ContentItem[]>('/clips/live'),
+
   searchPodcasts: (q: string, max = 20) =>
     get<PodcastSearchResult>('/podcasts/search', { q, max: String(max) }),
 
