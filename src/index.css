@@ -4429,6 +4429,20 @@ a {
 .adm-freshness--amber { color: #f2b441; border-color: rgba(242,180,65,0.3); background: rgba(242,180,65,0.08); }
 .adm-freshness--red   { color: var(--coral); border-color: rgba(251,113,133,0.3); background: rgba(251,113,133,0.08); }
 
+/* ── Admin alert banners ── */
+.adm-alert {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  padding: 0.85rem 1rem; border-radius: var(--r-md);
+  border: 1px solid; margin-bottom: 1.25rem; font-size: var(--step--1);
+}
+.adm-alert--error  { background: rgba(251,113,133,0.08); border-color: rgba(251,113,133,0.35); color: var(--coral); }
+.adm-alert--warn   { background: rgba(242,180,65,0.08);  border-color: rgba(242,180,65,0.35);  color: #f2b441; }
+.adm-alert--ok     { background: rgba(69,212,131,0.08);  border-color: rgba(69,212,131,0.35);  color: var(--lime); }
+.adm-alert svg { flex-shrink: 0; margin-top: 0.1rem; }
+.adm-alert__body { display: flex; flex-direction: column; gap: 0.2rem; }
+.adm-alert__body strong { font-weight: 600; }
+.adm-alert__body span { color: var(--text-dim); font-size: var(--step--2); line-height: 1.5; }
+
 .adm-type-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .adm-type-pill {
   font-size: var(--step--2); padding: 0.2rem 0.6rem;

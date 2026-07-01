@@ -30,6 +30,12 @@ export interface AdminStats {
     pushSubscribers: number;
     premiumSubscriptions: number;
     tierBreakdown: Record<string, number>;
+    ingest: {
+      status: 'ok' | 'claude_credits_low' | 'ai_unavailable';
+      runAt: string;
+      inserted: { news: number; podcasts: number; clips: number };
+      skipped: { promo: number; duration: number; irrelevant: number; tier3: number };
+    } | null;
   };
 }
 
@@ -224,6 +230,49 @@ export function AdminPage() {
 
       {/* ── SYSTEM ── */}
       <Section title="System" icon="brain">
+
+        {/* AI credit alert */}
+        {system.ingest && system.ingest.status !== 'ok' && (
+          <div className="adm-alert adm-alert--error">
+            <Icon name="x" size={16} />
+            <div className="adm-alert__body">
+              <strong>
+                {system.ingest.status === 'claude_credits_low'
+                  ? 'Anthropic credits low — ingest fell back to OpenRouter'
+                  : 'AI unavailable — ingest aborted early, feed may be stale'}
+              </strong>
+              <span>
+                Last run {relTime(system.ingest.runAt)} &middot; {system.ingest.inserted.news} news, {system.ingest.inserted.podcasts} podcasts, {system.ingest.inserted.clips} clips inserted
+                {system.ingest.status === 'claude_credits_low'
+                  ? ' · Top up Anthropic credits at console.anthropic.com'
+                  : ' · Check OpenRouter + Anthropic credits and redeploy ingest'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {system.ingest && system.ingest.status === 'ok' && (
+          <div className="adm-alert adm-alert--ok">
+            <Icon name="feed" size={16} />
+            <div className="adm-alert__body">
+              <strong>AI healthy</strong>
+              <span>
+                Last run {relTime(system.ingest.runAt)} &middot; {system.ingest.inserted.news} news, {system.ingest.inserted.podcasts} podcasts, {system.ingest.inserted.clips} clips
+              </span>
+            </div>
+          </div>
+        )}
+
+        {!system.ingest && (
+          <div className="adm-alert adm-alert--warn">
+            <Icon name="feed" size={16} />
+            <div className="adm-alert__body">
+              <strong>No ingest run recorded yet</strong>
+              <span>Trigger a manual run on the Render radar-ingest cron service.</span>
+            </div>
+          </div>
+        )}
+
         <div className="adm-stats-row">
           <Stat label="Push subscribers"     value={system.pushSubscribers} />
           <Stat label="Premium subscribers"  value={system.premiumSubscriptions} />
