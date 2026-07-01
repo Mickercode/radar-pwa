@@ -184,13 +184,15 @@ export function FeedPage() {
   const [activeSub, setActiveSub]           = useState<string | null>(null);
   const [typeFilter, setTypeFilter]         = useState<TypeFilter>('all');
 
-  const [items, setItems]     = useState<ContentItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
-  const [detail, setDetail]   = useState<ContentItem | null>(null);
+  const [items, setItems]         = useState<ContentItem[]>([]);
+  const [livePods, setLivePods]   = useState<ContentItem[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState<string | null>(null);
+  const [detail, setDetail]       = useState<ContentItem | null>(null);
 
   // Cache fetched items per tab key so switching back doesn't re-fetch
-  const cache = useRef<Map<string, ContentItem[]>>(new Map());
+  const cache         = useRef<Map<string, ContentItem[]>>(new Map());
+  const liveFetched   = useRef(false);
 
   useEffect(() => {
     const key = activeInterest ?? 'for-you';
@@ -216,6 +218,15 @@ export function FeedPage() {
       });
   }, [activeInterest, location]);
 
+  // When the user picks the Podcasts type-filter and DB has nothing, pull live RSS episodes
+  useEffect(() => {
+    if (typeFilter !== 'podcast' || loading || liveFetched.current) return;
+    const dbPods = items.filter(i => i.type === 'podcast');
+    if (dbPods.length > 0) return;
+    liveFetched.current = true;
+    api.livePodcasts().then(setLivePods).catch(() => {});
+  }, [typeFilter, loading, items]);
+
   // Reset sub-category when switching interest
   function switchInterest(slug: string | null) {
     setActiveInterest(slug);
@@ -232,7 +243,15 @@ export function FeedPage() {
   const subs = activeInterest ? (SUBCATS[activeInterest] ?? []) : [];
 
   // Narrow items: sub-category + type filter
-  const visible = items.filter(item => {
+  const baseItems = (() => {
+    if (typeFilter === 'podcast') {
+      const dbPods = items.filter(i => i.type === 'podcast');
+      if (dbPods.length === 0 && livePods.length > 0) return livePods;
+    }
+    return items;
+  })();
+
+  const visible = baseItems.filter(item => {
     if (typeFilter !== 'all' && item.type !== typeFilter) return false;
     if (activeSub) {
       const subDef = subs.find(s => s.label === activeSub);
