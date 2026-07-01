@@ -145,15 +145,6 @@ export function ProfilePage() {
           <Icon name="right" size={18} />
         </button>
 
-        <button className="profile-row profile-row--admin" onClick={() => navigate('/admin')}>
-          <div className="profile-row__icon"><Icon name="brain" size={20} /></div>
-          <div className="profile-row__body">
-            <span className="profile-row__label">Platform Admin</span>
-            <span className="profile-row__sub">Dashboard &amp; analytics</span>
-          </div>
-          <Icon name="right" size={18} />
-        </button>
-
         <button className="profile-row profile-row--danger" onClick={() => { clearAuth(); navigate('/login', { replace: true }); }}>
           <div className="profile-row__icon"><Icon name="logout" size={20} /></div>
           <div className="profile-row__body">
