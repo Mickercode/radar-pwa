@@ -50,7 +50,7 @@ export function ClipsPage() {
           <article
             key={item.id}
             className="clip-card"
-            onClick={() => item.videoUrl ? window.open(item.videoUrl, '_blank', 'noopener') : setSelected(item)}
+            onClick={() => setSelected(item)}
           >
             <div className="clip-card__thumb">
               {item.thumbnailUrl

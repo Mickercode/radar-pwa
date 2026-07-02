@@ -22,6 +22,11 @@ function formatDuration(secs: number): string {
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m} min`;
 }
 
+function extractYouTubeId(url: string): string | null {
+  const m = url.match(/[?&]v=([^&]+)/);
+  return m?.[1] ?? null;
+}
+
 function fmtStamp(secs: number): string {
   const m = Math.floor(secs / 60);
   const s = Math.floor(secs % 60);
@@ -119,6 +124,21 @@ export function DetailView({ item, onClose }: Props) {
 
         {/* Title */}
         <h1 className="dv__title">{item.title}</h1>
+
+        {/* ── YOUTUBE EMBED (clips) ── */}
+        {item.type === 'clip' && item.videoUrl && (() => {
+          const ytId = extractYouTubeId(item.videoUrl);
+          return ytId ? (
+            <div className="dv__video-embed">
+              <iframe
+                src={`https://www.youtube.com/embed/${ytId}`}
+                title={item.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ) : null;
+        })()}
 
         {/* ── SUMMARY / WHAT ── */}
         {(s?.what || s?.summary) && (
@@ -259,7 +279,7 @@ export function DetailView({ item, onClose }: Props) {
           </button>
         )}
 
-        {item.type === 'clip' && item.videoUrl && (
+        {item.type === 'clip' && item.videoUrl && !extractYouTubeId(item.videoUrl) && (
           <a href={item.videoUrl} target="_blank" rel="noopener noreferrer" className="dv__action dv__action--listen">
             <Icon name="play" size={18} />
             <span>Watch</span>
