@@ -118,6 +118,7 @@ export function LoginPage() {
     // ── Login / Signup ──
     if (!trimmedEmail) { setError('Enter your email address'); return; }
     if (!password) { setError('Enter your password'); return; }
+    if (mode === 'signup' && !name.trim()) { setError('Enter your name'); return; }
     if (mode === 'signup' && password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
@@ -130,7 +131,7 @@ export function LoginPage() {
         setAuth(res.token, res.user);
         navigate(from, { replace: true });
       } else {
-        await signup(trimmedEmail, password, name.trim() || undefined);
+        await signup(trimmedEmail, password, name.trim());
         setResendCooldown(60);
         switchMode('otp');
       }
@@ -240,7 +241,7 @@ export function LoginPage() {
           <form className="auth-form" onSubmit={handleSubmit}>
             {mode === 'signup' && (
               <div className="auth-field">
-                <label htmlFor="auth-name" className="auth-label">Name (optional)</label>
+                <label htmlFor="auth-name" className="auth-label">Name</label>
                 <input
                   id="auth-name"
                   className="auth-input"
