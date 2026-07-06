@@ -292,26 +292,24 @@ a {
 .dock__fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(0,194,203,0.6); }
 .dock__fab:active { transform: scale(0.96); }
 
-/* ── PWA Install Banner ───────────────────────
-   ═══════════════════════════════════════════════
-   CRITICAL: This banner must be VISIBLE and
-   CENTER-ALIGNED on mobile so users can install
-   the PWA. Fixed position, high z-index, full-
-   width on small screens, above the dock.
-   ════════════════════════════════════════════ */
 /* ── PWA Install Banner ───────────────────── */
 .pwa-banner {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
-  z-index: 60;
-  width: min(440px, calc(100vw - 24px));
+  /* Reliable centering: left+right=0 + margin:auto beats left:50%+transform
+     inside certain mobile rendering contexts */
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 82px);
+  z-index: 200;
+  width: calc(100% - 24px);
+  max-width: 440px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.75rem 0.9rem;
-  background: rgba(14, 14, 20, 0.97);
+  padding: 0.85rem 1rem;
+  background: rgba(14, 14, 20, 0.98);
   backdrop-filter: blur(24px) saturate(1.5);
   -webkit-backdrop-filter: blur(24px) saturate(1.5);
   border: 1px solid var(--border-strong);
@@ -328,12 +326,14 @@ a {
   color: var(--green);
   gap: 0.5rem;
   justify-content: center;
+  flex-wrap: nowrap;
 }
 .pwa-banner__app-icon {
-  width: 44px; height: 44px;
+  width: 40px; height: 40px;
   border-radius: var(--r-sm);
   object-fit: cover;
   flex: none;
+  order: 1;
 }
 .pwa-banner__text {
   flex: 1;
@@ -341,31 +341,15 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
+  order: 2;
 }
 .pwa-banner__text strong { font-size: var(--step-0); color: var(--text); }
 .pwa-banner__text span { color: var(--text-faint); line-height: 1.4; display: flex; align-items: center; gap: 0.2rem; flex-wrap: wrap; }
 .pwa-banner__inline-icon { display: inline-flex; vertical-align: middle; color: var(--text-dim); }
-.pwa-banner__install-btn {
-  flex: none;
-  height: 36px;
-  padding-inline: 1.1rem;
-  font-size: var(--step--1);
-  font-weight: 700;
-  background: linear-gradient(110deg, var(--cyan), #36e0d0);
-  color: #04141a;
-  border: none;
-  border-radius: var(--r-pill);
-  cursor: pointer;
-  white-space: nowrap;
-  display: flex; align-items: center; justify-content: center;
-  min-width: 70px;
-  transition: transform var(--t-fast), box-shadow var(--t-fast);
-}
-.pwa-banner__install-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px -6px var(--accent-glow); }
-.pwa-banner__install-btn:disabled { opacity: 0.6; pointer-events: none; }
 .pwa-banner__close {
   flex: none;
-  width: 30px; height: 30px;
+  order: 3;
+  width: 32px; height: 32px;
   display: grid; place-items: center;
   background: none; border: none;
   color: var(--text-faint); cursor: pointer;
@@ -374,8 +358,27 @@ a {
 }
 .pwa-banner__close:hover { color: var(--text); background: var(--bg-2); }
 .pwa-banner__icon { flex: none; }
+.pwa-banner__install-btn {
+  order: 4;
+  flex: 0 0 100%;           /* full-width row below icon+text */
+  height: 48px;
+  font-size: var(--step-0);
+  font-weight: 700;
+  background: linear-gradient(110deg, var(--cyan), #36e0d0);
+  color: #04141a;
+  border: none;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.pwa-banner__install-btn:hover  { transform: translateY(-1px); box-shadow: 0 6px 20px -6px var(--accent-glow); }
+.pwa-banner__install-btn:active { transform: scale(0.97); }
+.pwa-banner__install-btn:disabled { opacity: 0.6; pointer-events: none; }
 
-/* Standalone install button (Settings / Profile use) */
+/* Standalone install button (Settings use) */
 .pwa-install-btn {
   display: inline-flex; align-items: center; gap: 0.4rem;
   height: 40px; padding-inline: 1.25rem;
@@ -389,10 +392,6 @@ a {
 .pwa-install-btn:disabled { opacity: 0.55; pointer-events: none; }
 .pwa-install-btn--installed { background: var(--bg-2); color: var(--text-dim); }
 .pwa-install-ios { display: flex; align-items: center; gap: 0.4rem; font-size: var(--step--1); color: var(--text-dim); }
-
-@media (max-width: 480px) {
-  .pwa-banner { bottom: calc(env(safe-area-inset-bottom, 0px) + 74px); }
-}
 
 /* ── Utility Classes ───────────────────────── */
 .container {

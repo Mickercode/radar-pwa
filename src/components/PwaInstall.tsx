@@ -44,7 +44,7 @@ export function PwaInstall() {
         <img src="/assets/logo-icon.jpeg" alt="" className="pwa-banner__app-icon" />
         <div className="pwa-banner__text">
           <strong>Install Radar</strong>
-          <span>Tap <Icon name="clip" size={13} className="pwa-banner__inline-icon" /> Share → <strong>Add to Home Screen</strong></span>
+          <span>Tap Share → <strong>Add to Home Screen</strong></span>
         </div>
         <button className="pwa-banner__close" onClick={dismiss} aria-label="Dismiss">
           <Icon name="x" size={16} />
@@ -59,17 +59,17 @@ export function PwaInstall() {
         <img src="/assets/logo-icon.jpeg" alt="" className="pwa-banner__app-icon" />
         <div className="pwa-banner__text">
           <strong>Install Radar</strong>
-          <span>Add to home screen for offline access</span>
+          <span>Add to home screen for the full app experience</span>
         </div>
+        <button className="pwa-banner__close" onClick={dismiss} aria-label="Dismiss">
+          <Icon name="x" size={16} />
+        </button>
         <button
           className="pwa-banner__install-btn"
           onClick={handleInstall}
           disabled={installing}
         >
-          {installing ? <span className="auth-spinner" /> : 'Install'}
-        </button>
-        <button className="pwa-banner__close" onClick={dismiss} aria-label="Dismiss">
-          <Icon name="x" size={16} />
+          {installing ? <span className="auth-spinner" /> : 'Install Radar'}
         </button>
       </div>
     );
