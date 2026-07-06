@@ -223,6 +223,16 @@ export function SettingsPage() {
             <Icon name="right" size={16} />
           </div>
 
+          {/* ── Sign Out ── */}
+          <div className="settings-row settings-row--danger" onClick={() => { clearAuth(); navigate('/login', { replace: true }); }}>
+            <div className="settings-row__icon"><Icon name="logout" size={18} /></div>
+            <div className="settings-row__body">
+              <span className="settings-row__label">Sign Out</span>
+              <span className="settings-row__value">Signed in as {user?.email}</span>
+            </div>
+            <Icon name="right" size={16} />
+          </div>
+
           {/* ── Delete Account ── */}
           <div className="settings-row settings-row--danger" onClick={() => section === 'delete' ? openSection(null) : openSection('delete')}>
             <div className="settings-row__icon"><Icon name="trash" size={18} /></div>
