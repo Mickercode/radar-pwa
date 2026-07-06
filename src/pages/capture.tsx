@@ -410,7 +410,7 @@ export function CapturePage() {
                   {dragOver ? 'Drop it!' : 'Tap to choose a file'}
                 </p>
                 <p className="capture-dropzone-hint">PDF · Word (.doc / .docx) · Plain text (.txt)</p>
-                <p className="capture-dropzone-hint">Max {MAX_FILE_MB} MB · 5 free uploads/month</p>
+                <p className="capture-dropzone-hint">Max {MAX_FILE_MB} MB</p>
               </div>
             )}
           </div>
