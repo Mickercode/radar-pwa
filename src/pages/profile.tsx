@@ -20,6 +20,7 @@ export function ProfilePage() {
   const navigate   = useNavigate();
   const hydrated   = useAuth((s) => s.hydrated);
   const user       = useAuth((s) => s.user);
+  const isAdmin    = useAuth((s) => s.isAdmin);
   const clearAuth  = useAuth((s) => s.clearAuth);
 
   // Stats — start from local saved count, upgrade to BE counts when available
@@ -135,6 +136,17 @@ export function ProfilePage() {
           </div>
           <Icon name="right" size={18} />
         </button>
+
+        {isAdmin && (
+          <button className="profile-row" onClick={() => navigate('/admin')}>
+            <div className="profile-row__icon"><Icon name="settings" size={20} /></div>
+            <div className="profile-row__body">
+              <span className="profile-row__label">Admin Dashboard</span>
+              <span className="profile-row__sub">Platform health &amp; user management</span>
+            </div>
+            <Icon name="right" size={18} />
+          </button>
+        )}
 
         <button className="profile-row profile-row--danger" onClick={() => { clearAuth(); navigate('/login', { replace: true }); }}>
           <div className="profile-row__icon"><Icon name="logout" size={20} /></div>

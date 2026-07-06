@@ -4462,6 +4462,18 @@ a {
 .adm-alert__body strong { font-weight: 600; }
 .adm-alert__body span { color: var(--text-dim); font-size: var(--step--2); line-height: 1.5; }
 
+/* Grant Admin form */
+.adm-grant-form { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.25rem; }
+.adm-grant-input {
+  flex: 1; min-width: 200px;
+  padding: 0.6rem 0.875rem;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-size: var(--step--1);
+}
+.adm-grant-input:focus { outline: none; border-color: var(--accent); }
+.adm-grant-ok  { margin-top: 0.75rem; color: var(--mint); font-size: var(--step--1); }
+.adm-grant-err { margin-top: 0.75rem; color: var(--coral); font-size: var(--step--1); }
+
 .adm-type-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .adm-type-pill {
   font-size: var(--step--2); padding: 0.2rem 0.6rem;

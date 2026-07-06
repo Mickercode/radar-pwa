@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { Icon } from '../components/Icon';
+import { useAuth } from '../lib/auth';
 
 export interface AdminStats {
   users: {
@@ -87,10 +88,55 @@ function Section({ title, icon, children }: { title: string; icon: string; child
   );
 }
 
+function GrantAdminForm() {
+  const [email, setEmail]   = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
+  const [msg, setMsg]       = useState('');
+
+  async function handleGrant(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus('loading');
+    try {
+      const res = await api.grantAdmin(email.trim().toLowerCase());
+      setMsg(`${res.email} is now an admin. They must log out and back in for it to take effect.`);
+      setStatus('ok');
+      setEmail('');
+    } catch (err) {
+      setMsg((err as Error).message);
+      setStatus('error');
+    }
+  }
+
+  return (
+    <Section title="Grant Admin Access" icon="profile">
+      <p className="adm-empty" style={{ marginBottom: '12px' }}>
+        Promote any existing user account to admin. They will need to log out and back in.
+      </p>
+      <form className="adm-grant-form" onSubmit={handleGrant}>
+        <input
+          className="adm-grant-input"
+          type="email"
+          placeholder="user@example.com"
+          value={email}
+          onChange={e => { setEmail(e.target.value); setStatus('idle'); }}
+          required
+        />
+        <button className="btn btn--primary" type="submit" disabled={status === 'loading'}>
+          {status === 'loading' ? 'Granting…' : 'Grant Admin'}
+        </button>
+      </form>
+      {status === 'ok'    && <p className="adm-grant-ok">{msg}</p>}
+      {status === 'error' && <p className="adm-grant-err">{msg}</p>}
+    </Section>
+  );
+}
+
 export function AdminPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const user = useAuth(s => s.user);
 
   useEffect(() => {
     api.adminStats()
@@ -142,7 +188,7 @@ export function AdminPage() {
       <div className="adm-head">
         <p className="capture-kicker">Platform</p>
         <h1 className="adm-title">Admin Dashboard</h1>
-        <p className="adm-subtitle">Real-time platform health at a glance.</p>
+        <p className="adm-subtitle">Signed in as {user?.email}</p>
       </div>
 
       {/* ── USERS ── */}
@@ -297,6 +343,8 @@ export function AdminPage() {
           ))}
         </div>
       </Section>
+
+      <GrantAdminForm />
     </div>
   );
 }

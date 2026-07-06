@@ -196,6 +196,16 @@ export const api = {
 
   adminStats: () => get<import('../pages/admin').AdminStats>('/admin/stats'),
 
+  grantAdmin: (email: string) =>
+    fetch(BASE + '/admin/grant-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ email }),
+    }).then(async (res) => {
+      if (!res.ok) throw new Error(await extractErrorMessage(res));
+      return res.json() as Promise<{ ok: boolean; email: string }>;
+    }),
+
   analyseFile: (file: File) => {
     const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
     const form = new FormData();

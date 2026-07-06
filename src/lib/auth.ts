@@ -11,11 +11,13 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string | null;
+  isAdmin?: boolean;
 }
 
 export interface AuthState {
   token: string | null;
   user: AuthUser | null;
+  isAdmin: boolean;
   interests: string[];
   location: string | null;
   onboardingDone: boolean;
@@ -24,6 +26,7 @@ export interface AuthState {
   setAuth: (token: string, user: AuthUser) => void;
   clearAuth: () => void;
   setPrefs: (prefs: { interests: string[]; location: string | null; onboardingDone: boolean }) => void;
+  setAdmin: (isAdmin: boolean) => void;
 }
 
 // ── Store ───────────────────────────────────────────────────────────────────
@@ -33,19 +36,22 @@ export const useAuth = create<AuthState>()(
     (set) => ({
       token: null,
       user: null,
+      isAdmin: false,
       interests: [],
       location: null,
       onboardingDone: false,
       hydrated: false,
-      setAuth: (token, user) => set({ token, user, hydrated: true }),
-      clearAuth: () => set({ token: null, user: null, interests: [], location: null, onboardingDone: false, hydrated: true }),
+      setAuth: (token, user) => set({ token, user, isAdmin: user.isAdmin ?? false, hydrated: true }),
+      clearAuth: () => set({ token: null, user: null, isAdmin: false, interests: [], location: null, onboardingDone: false, hydrated: true }),
       setPrefs: (prefs) => set(prefs),
+      setAdmin: (isAdmin) => set({ isAdmin }),
     }),
     {
       name: 'radar:auth',
       partialize: (state) => ({
         token: state.token,
         user: state.user,
+        isAdmin: state.isAdmin,
         interests: state.interests,
         location: state.location,
         onboardingDone: state.onboardingDone,
@@ -206,7 +212,12 @@ export async function getMe(): Promise<{ user: AuthUser; preferences: UserPrefer
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
   });
   if (!res.ok) throw new Error(`Failed to load profile (${res.status})`);
-  return res.json() as Promise<{ user: AuthUser; preferences: UserPreferences }>;
+  const data = await res.json() as { user: AuthUser; preferences: UserPreferences };
+  // Sync isAdmin from server so DB changes take effect on next app open
+  if (typeof data.user?.isAdmin === 'boolean') {
+    useAuth.getState().setAdmin(data.user.isAdmin);
+  }
+  return data;
 }
 
 export async function updateInterests(
