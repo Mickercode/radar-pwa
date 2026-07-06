@@ -20,7 +20,6 @@ const SUB_PAGE_META: Record<string, { title: string; back: string }> = {
   '/settings':  { title: 'Settings',    back: '/profile' },
   '/capture':   { title: 'Capture',     back: '/'        },
   '/notebook':  { title: 'Notebook',    back: '/profile' },
-  '/subscribe': { title: 'Premium',     back: '/profile' },
   '/clips':     { title: 'Clips',       back: '/'        },
   '/podcasts':  { title: 'Podcasts',    back: '/'        },
 };
@@ -39,7 +38,7 @@ export function AppShell() {
         {isMain ? (
           <>
             <div className="nav__brand">
-              <img src="/assets/logo.jpeg" alt="Radar" className="nav__logo-img" />
+              <img src="/assets/logo-wide.jpeg" alt="Radar" className="nav__logo-img" />
             </div>
             <div className="nav__spacer" />
             <NavLink to="/settings" className="icon-btn" aria-label="Settings">

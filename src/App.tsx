@@ -18,7 +18,6 @@ import { SettingsPage } from './pages/settings';
 import { LoginPage } from './pages/login';
 import { ResetPasswordPage } from './pages/reset-password';
 import { OnboardingPage } from './pages/onboarding';
-import { SubscribePage } from './pages/subscribe';
 import { NotFoundPage } from './pages/not-found';
 import { AdminPage } from './pages/admin';
 
@@ -99,7 +98,6 @@ export function App() {
             <Route path="saved"     element={<KnowledgePage />} />
             <Route path="profile"   element={<ProfilePage />} />
             <Route path="settings"  element={<SettingsPage />} />
-            <Route path="subscribe" element={<SubscribePage />} />
             <Route path="admin"     element={<AdminPage />} />
             <Route path="*"         element={<NotFoundPage />} />
           </Route>

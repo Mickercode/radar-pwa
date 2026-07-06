@@ -136,15 +136,6 @@ export function ProfilePage() {
           <Icon name="right" size={18} />
         </button>
 
-        <button className="profile-row" onClick={() => navigate('/subscribe')}>
-          <div className="profile-row__icon"><Icon name="spark" size={20} /></div>
-          <div className="profile-row__body">
-            <span className="profile-row__label">Subscription</span>
-            <span className="profile-row__sub">Upgrade to Premium</span>
-          </div>
-          <Icon name="right" size={18} />
-        </button>
-
         <button className="profile-row profile-row--danger" onClick={() => { clearAuth(); navigate('/login', { replace: true }); }}>
           <div className="profile-row__icon"><Icon name="logout" size={20} /></div>
           <div className="profile-row__body">
