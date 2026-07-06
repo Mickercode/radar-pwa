@@ -182,7 +182,7 @@ export function FeedPage() {
   // Active interest tab — null means "For You"
   const [activeInterest, setActiveInterest] = useState<string | null>(null);
   const [activeSub, setActiveSub]           = useState<string | null>(null);
-  const [typeFilter, setTypeFilter]         = useState<TypeFilter>('all');
+  const [typeFilter, setTypeFilter]         = useState<TypeFilter>('news');
 
   const [items, setItems]         = useState<ContentItem[]>([]);
   const [livePods, setLivePods]   = useState<ContentItem[]>([]);
@@ -340,14 +340,6 @@ export function FeedPage() {
       {/* ── Interest tabs (only if user has interests) ─ */}
       {interests.length > 0 && (
         <div className="feed-interest-tabs" role="tablist" aria-label="Interest filter">
-          <button
-            role="tab"
-            aria-selected={isForYou}
-            className={`feed-itab${isForYou ? ' feed-itab--active' : ''}`}
-            onClick={() => switchInterest(null)}
-          >
-            For You
-          </button>
           {interests.map(slug => (
             <button
               key={slug}
@@ -385,13 +377,13 @@ export function FeedPage() {
 
       {/* ── Type filter chips ─────────────────────────── */}
       <div className="feed-chips">
-        {(['all', 'news', 'podcast', 'clip'] as TypeFilter[]).map(f => (
+        {(['news', 'podcast', 'clip'] as TypeFilter[]).map(f => (
           <button
             key={f}
             className={`feed-chip${typeFilter === f ? ' feed-chip--active' : ''}`}
             onClick={() => setTypeFilter(f)}
           >
-            {f === 'all' ? 'All' : f === 'podcast' ? 'Podcasts' : f === 'news' ? 'News' : 'Clips'}
+            {f === 'podcast' ? 'Podcasts' : f === 'news' ? 'News' : 'Clips'}
           </button>
         ))}
       </div>
