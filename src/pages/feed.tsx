@@ -194,8 +194,10 @@ export function FeedPage() {
   const cache         = useRef<Map<string, ContentItem[]>>(new Map());
   const liveFetched   = useRef(false);
 
-  useEffect(() => {
-    const key = activeInterest ?? 'for-you';
+  const retryCount = useRef(0);
+
+  function loadFeed(interest: string | null) {
+    const key = interest ?? 'for-you';
     if (cache.current.has(key)) {
       setItems(cache.current.get(key)!);
       setLoading(false);
@@ -205,17 +207,30 @@ export function FeedPage() {
     setLoading(true);
     setError(null);
 
-    const fetchInterests = activeInterest ? [activeInterest] : undefined;
+    const fetchInterests = interest ? [interest] : undefined;
     api.feed([], location ?? undefined, fetchInterests)
       .then(r => {
+        retryCount.current = 0;
         cache.current.set(key, r.items);
         setItems(r.items);
         setLoading(false);
       })
       .catch(() => {
-        setError('Could not load feed.');
-        setLoading(false);
+        // Auto-retry once after 4 s — Render free tier can take ~30 s to cold-start
+        if (retryCount.current < 1) {
+          retryCount.current++;
+          setTimeout(() => loadFeed(interest), 4000);
+        } else {
+          retryCount.current = 0;
+          setError('Could not load feed.');
+          setLoading(false);
+        }
       });
+  }
+
+  useEffect(() => {
+    loadFeed(activeInterest);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeInterest, location]);
 
   // When the user picks the Podcasts type-filter and DB has nothing, pull live RSS episodes
@@ -394,7 +409,18 @@ export function FeedPage() {
           <div className="feed-loading"><div className="feed-spinner" /><p>Loading{activeInterest ? ` ${INTEREST_LABELS[activeInterest] ?? activeInterest}` : ' your feed'}…</p></div>
         )}
         {!loading && error && (
-          <div className="empty"><Icon name="feed" size={48} /><h3>Could not load feed</h3><p>{error}</p></div>
+          <div className="empty">
+            <Icon name="feed" size={48} />
+            <h3>Could not load feed</h3>
+            <p>The server may be starting up. Please try again.</p>
+            <button
+              className="btn btn--primary"
+              style={{ marginTop: '1rem' }}
+              onClick={() => { cache.current.delete(activeInterest ?? 'for-you'); loadFeed(activeInterest); }}
+            >
+              Try again
+            </button>
+          </div>
         )}
         {!loading && !error && visible.length === 0 && (
           <div className="empty">
