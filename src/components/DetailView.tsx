@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from './Icon';
-import { type ContentItem } from '../lib/api';
+import { type ContentItem, type KeyMoment, api } from '../lib/api';
 import { saveItem, unsaveItem, isSaved } from '../lib/saved';
 import { usePlayer } from './AudioPlayer';
 
@@ -33,31 +33,22 @@ function fmtStamp(secs: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-// Derive estimated chapter markers from duration
-const CHAPTER_NAMES = [
-  'Introduction and overview',
-  'Main topic begins',
-  'Key insight discussed',
-  'Deep dive into details',
-  'Conclusions and takeaways',
-];
-function buildChapters(durationSecs: number) {
-  if (durationSecs < 120) return [];
-  const count = Math.min(5, Math.max(2, Math.floor(durationSecs / 600)));
-  return Array.from({ length: count }, (_, i) => ({
-    time: Math.floor((durationSecs / count) * i),
-    label: CHAPTER_NAMES[i] ?? `Chapter ${i + 1}`,
-  }));
-}
-
 export function DetailView({ item, onClose }: Props) {
   const s = item.summary;
-  const [saved, setSaved]     = useState(() => isSaved(item.id));
+  const [saved, setSaved]       = useState(() => isSaved(item.id));
+  const [moments, setMoments]   = useState<KeyMoment[]>([]);
   const { play, pause, resume, track, playing, openPlayer, seekTo } = usePlayer();
 
   const isPlayingThis = track?.contentId === item.id && playing;
   const isPodcast = item.type === 'podcast';
-  const chapters  = isPodcast && item.duration > 0 ? buildChapters(item.duration) : [];
+
+  // Fetch AI-generated key moments for podcasts from the backend
+  useEffect(() => {
+    if (!isPodcast || !item.id) return;
+    api.keyMoments(item.id)
+      .then(setMoments)
+      .catch(() => { /* silently skip — not critical */ });
+  }, [item.id, isPodcast]);
 
   function toggleSave() {
     if (saved) { unsaveItem(item.id); setSaved(false); }
@@ -118,8 +109,9 @@ export function DetailView({ item, onClose }: Props) {
           {item.duration > 0 && (
             <><span className="dv__sep">·</span><span>{formatDuration(item.duration)}</span></>
           )}
-          <span className="dv__sep">·</span>
-          <span className="dv__ng">🇳🇬 Nigeria</span>
+          {(s?.nigeriaRelevance ?? 0) >= 2 && (
+            <><span className="dv__sep">·</span><span className="dv__ng">🇳🇬 Nigeria</span></>
+          )}
         </div>
 
         {/* Title */}
@@ -191,23 +183,23 @@ export function DetailView({ item, onClose }: Props) {
           </section>
         )}
 
-        {/* ── KEY MOMENTS (podcast chapters) ── */}
-        {chapters.length > 0 && (
+        {/* ── KEY MOMENTS (AI-generated podcast chapters) ── */}
+        {isPodcast && moments.length > 0 && (
           <section className="dv__section">
             <div className="dv__section-label">
               <span className="dv__dot dv__dot--faint" />
               <span className="dv__label-text">KEY MOMENTS</span>
             </div>
             <div className="dv__chapters">
-              {chapters.map((ch, i) => (
+              {moments.map((m) => (
                 <button
-                  key={i}
+                  key={m.id}
                   className="dv__chapter"
-                  onClick={() => handlePlay(ch.time)}
-                  aria-label={`Jump to ${ch.label}`}
+                  onClick={() => handlePlay(m.timestampSec)}
+                  aria-label={`Jump to ${m.label}`}
                 >
-                  <span className="dv__chapter-time">{fmtStamp(ch.time)}</span>
-                  <span className="dv__chapter-label">{ch.label}</span>
+                  <span className="dv__chapter-time">{fmtStamp(m.timestampSec)}</span>
+                  <span className="dv__chapter-label">{m.label}</span>
                   <span className="dv__chapter-play">
                     <Icon name="play" size={14} />
                   </span>
@@ -252,12 +244,7 @@ export function DetailView({ item, onClose }: Props) {
       <div className="dv__actions">
         <button className={`dv__action${saved ? ' dv__action--active' : ''}`} onClick={toggleSave}>
           <Icon name="bookmark" size={18} />
-          <span>Save</span>
-        </button>
-
-        <button className="dv__action" onClick={toggleSave}>
-          <Icon name="brain" size={18} />
-          <span>Save to Brain</span>
+          <span>{saved ? 'Saved' : 'Save'}</span>
         </button>
 
         <button className="dv__action" onClick={handleShare}>

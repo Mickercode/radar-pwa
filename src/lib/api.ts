@@ -141,6 +141,21 @@ interface EpisodeResult {
 
 // ── Capture types ────────────────────────────────────────────────────────────
 
+export interface KeyMoment {
+  id: string;
+  contentId: string;
+  timestampSec: number;
+  label: string;
+}
+
+export interface InsightsReport {
+  pattern: string;
+  strengths: string;
+  blindSpots: string;
+  topTypes: Record<string, number>;
+  totalItems: number;
+}
+
 export interface CapturedInsight {
   sourceUrl: string;
   title: string;
@@ -181,6 +196,18 @@ export const api = {
 
   podcastEpisodesByFeedUrl: (url: string, max = 20) =>
     get<EpisodeResult>('/podcasts/by-feed-url/episodes', { url, max: String(max) }),
+
+  keyMoments: (contentId: string) => get<KeyMoment[]>(`/content/${contentId}/key-moments`),
+
+  insightsReport: (items: Array<{ title: string; type: string; source: string }>) =>
+    fetch(BASE + '/ai/insights-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ items }),
+    }).then(async (res) => {
+      if (!res.ok) throw new Error(await extractErrorMessage(res));
+      return res.json() as Promise<InsightsReport>;
+    }),
 
   capture: (url: string) => {
     const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '';

@@ -190,16 +190,42 @@ export function FeedPage() {
   const [error, setError]         = useState<string | null>(null);
   const [detail, setDetail]       = useState<ContentItem | null>(null);
 
-  // Cache fetched items per tab key so switching back doesn't re-fetch
-  const cache         = useRef<Map<string, ContentItem[]>>(new Map());
-  const liveFetched   = useRef(false);
+  // ── Feed cache (in-memory + 5-min localStorage TTL) ───────────────────────
+  const FEED_TTL = 5 * 60 * 1000;
+  const cache     = useRef<Map<string, ContentItem[]>>(new Map());
+  const liveFetched = useRef(false);
+  const retryCount  = useRef(0);
 
-  const retryCount = useRef(0);
+  function readDiskCache(key: string): ContentItem[] | null {
+    try {
+      const raw = localStorage.getItem(`radar:feed:${key}`);
+      if (!raw) return null;
+      const { items: cached, ts } = JSON.parse(raw) as { items: ContentItem[]; ts: number };
+      if (Date.now() - ts > FEED_TTL) { localStorage.removeItem(`radar:feed:${key}`); return null; }
+      return cached;
+    } catch { return null; }
+  }
+
+  function writeDiskCache(key: string, items: ContentItem[]) {
+    try { localStorage.setItem(`radar:feed:${key}`, JSON.stringify({ items, ts: Date.now() })); }
+    catch { /* storage full */ }
+  }
 
   function loadFeed(interest: string | null) {
     const key = interest ?? 'for-you';
+
+    // 1. In-memory (instant)
     if (cache.current.has(key)) {
       setItems(cache.current.get(key)!);
+      setLoading(false);
+      return;
+    }
+
+    // 2. localStorage (< 5 min old)
+    const disk = readDiskCache(key);
+    if (disk) {
+      cache.current.set(key, disk);
+      setItems(disk);
       setLoading(false);
       return;
     }
@@ -212,11 +238,11 @@ export function FeedPage() {
       .then(r => {
         retryCount.current = 0;
         cache.current.set(key, r.items);
+        writeDiskCache(key, r.items);
         setItems(r.items);
         setLoading(false);
       })
       .catch(() => {
-        // Auto-retry once after 4 s — Render free tier can take ~30 s to cold-start
         if (retryCount.current < 1) {
           retryCount.current++;
           setTimeout(() => loadFeed(interest), 4000);

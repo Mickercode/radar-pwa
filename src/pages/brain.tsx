@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Icon } from '../components/Icon';
 import { getSavedItems, type SavedItem } from '../lib/saved';
 import { DetailView } from '../components/DetailView';
+import { api, type InsightsReport } from '../lib/api';
 import type { ContentItem } from '../lib/api';
 import { buildGraph } from '../lib/graph';
 import { KnowledgeGraph } from '../features/knowledge/KnowledgeGraph';
@@ -42,8 +43,44 @@ export function BrainPage() {
   const [search, setSearch]       = useState('');
   const [detail, setDetail]       = useState<ContentItem | null>(null);
   const [webView, setWebView]     = useState<WebView>('list');
+  const [aiReport, setAiReport]   = useState<InsightsReport | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError]     = useState<string | null>(null);
   const saved = getSavedItems();
   const graphData = useMemo(() => buildGraph(saved), [saved]);
+
+  // Degree (connection count) per saved item — used for smart Reminders
+  const degreeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const edge of graphData.edges) {
+      counts[edge.source] = (counts[edge.source] ?? 0) + 1;
+      counts[edge.target] = (counts[edge.target] ?? 0) + 1;
+    }
+    return counts;
+  }, [graphData.edges]);
+
+  // Rank by connections × 2 + days since saved — surfaces connected + aging insights
+  const reminderItems = useMemo(() => {
+    if (saved.length === 0) return [];
+    return [...saved]
+      .sort((a, b) => {
+        const dayA = Math.floor((Date.now() - new Date(a.savedAt).getTime()) / 86_400_000);
+        const dayB = Math.floor((Date.now() - new Date(b.savedAt).getTime()) / 86_400_000);
+        const scoreA = (degreeCounts[a.id] ?? 0) * 2 + dayA;
+        const scoreB = (degreeCounts[b.id] ?? 0) * 2 + dayB;
+        return scoreB - scoreA;
+      })
+      .slice(0, 5);
+  }, [saved, degreeCounts]);
+
+  function generateAiReport() {
+    if (saved.length < 3) return;
+    setAiLoading(true);
+    setAiError(null);
+    api.insightsReport(saved.map(s => ({ title: s.title, type: s.type, source: s.source })))
+      .then(r => { setAiReport(r); setAiLoading(false); })
+      .catch(() => { setAiError('Could not generate report. Try again.'); setAiLoading(false); });
+  }
 
   const filtered = search.trim()
     ? saved.filter(s =>
@@ -164,18 +201,22 @@ export function BrainPage() {
       {/* ── SMART REMINDERS ── */}
       {tab === 'reminders' && (
         <div className="brain-content">
-          <p className="remind-intro">Radar surfaces your most connected insights — ideas that link to many things you already know.</p>
+          <p className="remind-intro">Ranked by how many ideas in your web they connect to — plus how long since you reviewed them.</p>
           {saved.length === 0 ? (
             <div className="empty" style={{marginTop:'1.5rem'}}>
               <Icon name="brain" size={48} /><h3>No reminders yet</h3>
-              <p>Save insights from your feed. Radar will surface the most important ones at the right time.</p>
+              <p>Save insights from your feed. Radar will surface the most connected ones first.</p>
             </div>
           ) : (
             <ul className="brain-list" style={{marginTop:'1rem'}}>
-              {saved.slice(0,5).map(item=>(
+              {reminderItems.map(item=>(
                 <li key={item.id} className="brain-item brain-item--remind" onClick={()=>setDetail(savedToContent(item))}>
                   <div className="brain-item__head">
-                    <span className="remind-badge">Review now</span>
+                    <span className="remind-badge">
+                      {(degreeCounts[item.id] ?? 0) > 0
+                        ? `${degreeCounts[item.id]} connection${(degreeCounts[item.id] ?? 0) > 1 ? 's' : ''}`
+                        : 'Review now'}
+                    </span>
                     <span className="brain-item__time">{relTime(item.savedAt)}</span>
                   </div>
                   <p className="brain-item__title">{item.title}</p>
@@ -229,17 +270,47 @@ export function BrainPage() {
 
           {checkinTab === 'quarterly' && (
             <div className="checkin-card">
-              <div className="checkin-icon">🏆</div>
-              <h2 className="checkin-title">3-Month Report</h2>
-              <p className="checkin-desc">Your biggest wins, clear knowledge gaps, how much your web has grown, and what to focus on next.</p>
-              {saved.length >= 5 ? (
+              <div className="checkin-icon">🤖</div>
+              <h2 className="checkin-title">AI Insight Report</h2>
+              <p className="checkin-desc">Radar reads your saved knowledge and tells you what you're building — and what gaps to fill.</p>
+              {saved.length < 3 ? (
+                <p className="checkin-note">Save at least 3 items to unlock your AI report.</p>
+              ) : aiReport ? (
                 <div className="checkin-report">
-                  <div className="checkin-report__row"><span className="checkin-report__label">Knowledge items</span><span className="checkin-report__val">{saved.length}</span></div>
-                  <div className="checkin-report__row"><span className="checkin-report__label">Total insights</span><span className="checkin-report__val">{saved.reduce((a,s)=>a+s.keyTakeaways.length,0)}</span></div>
-                  <div className="checkin-report__row"><span className="checkin-report__label">Content types</span><span className="checkin-report__val">{new Set(saved.map(s=>s.type)).size}</span></div>
-                  <p className="checkin-note" style={{marginTop:'1rem'}}>A full AI report unlocks after 3 months of consistent saving.</p>
+                  <div className="ai-report-section">
+                    <span className="ai-report-label">📌 Your pattern</span>
+                    <p>{aiReport.pattern}</p>
+                  </div>
+                  <div className="ai-report-section">
+                    <span className="ai-report-label">💪 Your strengths</span>
+                    <p>{aiReport.strengths}</p>
+                  </div>
+                  <div className="ai-report-section">
+                    <span className="ai-report-label">🔭 Blind spots to explore</span>
+                    <p>{aiReport.blindSpots}</p>
+                  </div>
+                  <div className="checkin-report__row" style={{marginTop:'1rem'}}>
+                    <span className="checkin-report__label">Items analysed</span>
+                    <span className="checkin-report__val">{aiReport.totalItems}</span>
+                  </div>
+                  <button className="checkin-refresh" onClick={generateAiReport} disabled={aiLoading}>
+                    {aiLoading ? 'Regenerating…' : '↻ Refresh report'}
+                  </button>
                 </div>
-              ) : <p className="checkin-note">Save at least 5 items to unlock your first quarterly report.</p>}
+              ) : aiError ? (
+                <div>
+                  <p className="checkin-note" style={{color:'var(--c-error,#f87171)'}}>{aiError}</p>
+                  <button className="checkin-btn" onClick={generateAiReport}>Try again</button>
+                </div>
+              ) : (
+                <button
+                  className="checkin-btn"
+                  onClick={generateAiReport}
+                  disabled={aiLoading}
+                >
+                  {aiLoading ? 'Generating…' : 'Generate my AI report'}
+                </button>
+              )}
             </div>
           )}
         </div>
