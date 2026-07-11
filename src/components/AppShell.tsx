@@ -46,9 +46,6 @@ export function AppShell() {
               <img src="/assets/logo-wide.jpeg" alt="Radar" className="nav__logo-img" />
             </div>
             <div className="nav__spacer" />
-            <NavLink to="/settings" className="icon-btn" aria-label="Settings">
-              <Icon name="settings" size={20} />
-            </NavLink>
           </>
         ) : (
           <>

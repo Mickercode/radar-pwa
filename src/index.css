@@ -4397,6 +4397,61 @@ a {
   color: var(--text-faint);
 }
 
+/* AI Analyzer CTA button — prominent card above the rows */
+.profile-capture-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: calc(100% - clamp(2rem, 8vw, 3rem));
+  margin: 0 clamp(1rem, 4vw, 1.5rem) 1rem;
+  padding: 1.1rem 1.2rem;
+  background: linear-gradient(135deg, rgba(0, 194, 203, 0.15) 0%, rgba(69, 212, 131, 0.12) 100%);
+  border: 1px solid rgba(0, 194, 203, 0.35);
+  border-radius: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  color: var(--text);
+}
+.profile-capture-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 194, 203, 0.22) 0%, rgba(69, 212, 131, 0.18) 100%);
+  border-color: var(--cyan);
+}
+.profile-capture-btn:active { transform: scale(0.985); }
+
+.profile-capture-btn__icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(0, 194, 203, 0.2);
+  color: var(--cyan);
+}
+
+.profile-capture-btn__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.profile-capture-btn__label {
+  display: block;
+  font-size: var(--step-0);
+  font-weight: 700;
+  color: var(--cyan);
+  line-height: 1.2;
+}
+.profile-capture-btn__sub {
+  display: block;
+  font-size: var(--step--1);
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+
 /* Row links */
 .profile-rows {
   display: flex;
