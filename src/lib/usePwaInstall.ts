@@ -1,12 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
 
 type BeforeInstallPromptEvent = Event & {
-  prompt: () => void;
+  prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 };
 
 export function usePwaInstall() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  // Seed from the globally pre-captured event (set in main.tsx before React mounts)
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
+    () => (window as Window & { _pwaPrompt?: BeforeInstallPromptEvent })._pwaPrompt ?? null
+  );
   const [installed, setInstalled] = useState(false);
 
   const isIOS =
@@ -19,9 +22,12 @@ export function usePwaInstall() {
     (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
   useEffect(() => {
+    // Catch any future firings (e.g. prompt dismissed then re-shown by browser)
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      const prompt = e as BeforeInstallPromptEvent;
+      (window as Window & { _pwaPrompt?: BeforeInstallPromptEvent })._pwaPrompt = prompt;
+      setDeferredPrompt(prompt);
     };
     const installedHandler = () => {
       setDeferredPrompt(null);
@@ -37,10 +43,11 @@ export function usePwaInstall() {
 
   const install = useCallback(async () => {
     if (!deferredPrompt) return false;
-    deferredPrompt.prompt();
+    await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') setInstalled(true);
     setDeferredPrompt(null);
+    (window as Window & { _pwaPrompt?: BeforeInstallPromptEvent })._pwaPrompt = undefined;
     return outcome === 'accepted';
   }, [deferredPrompt]);
 

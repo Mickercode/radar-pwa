@@ -55,8 +55,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,svg,webmanifest}'],
         navigateFallback: 'index.html',
+        // Don't intercept API or backend routes with the fallback
+        navigateFallbackDenylist: [/^\/api\//, /^\/feed/, /^\/content/, /^\/podcasts/, /^\/clips/, /^\/topics/, /^\/auth/, /^\/capture/, /^\/admin/],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,

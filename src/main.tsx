@@ -4,6 +4,22 @@ import { App } from './App';
 import './tailwind.css';
 import './index.css';
 
+// ── PWA install prompt — capture BEFORE React mounts ─────────────────────────
+// `beforeinstallprompt` fires very early (often before first paint).  If we
+// only listen inside a React useEffect the event has already fired and is gone.
+// We store it on window so usePwaInstall.ts can pick it up whenever it mounts.
+declare global {
+  interface Window { _pwaPrompt?: BeforeInstallPromptEvent; }
+  interface BeforeInstallPromptEvent extends Event {
+    prompt(): Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  }
+}
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  window._pwaPrompt = e as BeforeInstallPromptEvent;
+});
+
 // ── Global 401 interceptor ────────────────────────────────────────────────────
 // Patch window.fetch once at startup. Any response with status 401 means the
 // JWT has expired or been revoked — clear the stored auth and send the user to

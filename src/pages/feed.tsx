@@ -4,10 +4,7 @@ import { Icon } from '../components/Icon';
 import { type ContentItem, api } from '../lib/api';
 import { saveItem, unsaveItem, isSaved } from '../lib/saved';
 import { useAuth } from '../lib/auth';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-
-type TypeFilter = 'all' | 'news' | 'podcast' | 'clip';
 
 // ── Static data ────────────────────────────────────────────────────────────────
 
@@ -183,18 +180,15 @@ export function FeedPage() {
   // Active interest tab — null means "For You"
   const [activeInterest, setActiveInterest] = useState<string | null>(null);
   const [activeSub, setActiveSub]           = useState<string | null>(null);
-  const [typeFilter, setTypeFilter]         = useState<TypeFilter>('all');
 
-  const [items, setItems]         = useState<ContentItem[]>([]);
-  const [livePods, setLivePods]   = useState<ContentItem[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState<string | null>(null);
+  const [items, setItems]     = useState<ContentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
 
   // ── Feed cache (in-memory + 5-min localStorage TTL) ───────────────────────
-  const FEED_TTL = 5 * 60 * 1000;
-  const cache     = useRef<Map<string, ContentItem[]>>(new Map());
-  const liveFetched = useRef(false);
-  const retryCount  = useRef(0);
+  const FEED_TTL   = 5 * 60 * 1000;
+  const cache      = useRef<Map<string, ContentItem[]>>(new Map());
+  const retryCount = useRef(0);
 
   function readDiskCache(key: string): ContentItem[] | null {
     try {
@@ -259,15 +253,6 @@ export function FeedPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeInterest, location]);
 
-  // When the user picks the Podcasts type-filter and DB has nothing, pull live RSS episodes
-  useEffect(() => {
-    if (typeFilter !== 'podcast' || loading || liveFetched.current) return;
-    const dbPods = items.filter(i => i.type === 'podcast');
-    if (dbPods.length > 0) return;
-    liveFetched.current = true;
-    api.livePodcasts().then(setLivePods).catch(() => {});
-  }, [typeFilter, loading, items]);
-
   // Reset sub-category when switching interest
   function switchInterest(slug: string | null) {
     setActiveInterest(slug);
@@ -283,17 +268,8 @@ export function FeedPage() {
   // Sub-categories available for the active interest
   const subs = activeInterest ? (SUBCATS[activeInterest] ?? []) : [];
 
-  // Narrow items: sub-category + type filter
-  const baseItems = (() => {
-    if (typeFilter === 'podcast') {
-      const dbPods = items.filter(i => i.type === 'podcast');
-      if (dbPods.length === 0 && livePods.length > 0) return livePods;
-    }
-    return items;
-  })();
-
-  const visible = baseItems.filter(item => {
-    if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+  // Narrow items: sub-category only (type filter removed — each type has its own page)
+  const visible = items.filter(item => {
     if (activeSub) {
       const subDef = subs.find(s => s.label === activeSub);
       if (subDef && !matchesSub(item, subDef.kws)) return false;
@@ -423,21 +399,6 @@ export function FeedPage() {
           ))}
         </div>
       )}
-
-      {/* ── Type filter — Shadcn Tabs ─────────────────── */}
-      <Tabs value={typeFilter} onValueChange={v => setTypeFilter(v as TypeFilter)}>
-        <TabsList className="feed-chips gap-1.5 rounded-none bg-transparent px-[var(--page-px)] py-2 border-b border-[var(--border)] overflow-x-auto scrollbar-none">
-          {(['all', 'news', 'podcast', 'clip'] as TypeFilter[]).map(f => (
-            <TabsTrigger
-              key={f}
-              value={f}
-              className="feed-chip data-[state=active]:feed-chip--active rounded-full h-7 px-3 text-[0.72rem] font-semibold border border-[var(--border-strong)] bg-transparent text-[var(--text-dim)] data-[state=active]:bg-[var(--text)] data-[state=active]:text-[var(--bg)] data-[state=active]:border-[var(--text)] hover:border-[var(--cyan)] hover:text-[var(--text)] transition-all duration-150 whitespace-nowrap"
-            >
-              {f === 'all' ? 'All' : f === 'podcast' ? 'Podcasts' : f === 'news' ? 'News' : 'Clips'}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
 
       {/* ── Content ───────────────────────────────────── */}
       <div className="feed-scroll">
