@@ -109,12 +109,12 @@ export function ProfilePage() {
         </div>
       </div>
 
-      {/* AI Capture — prominent CTA */}
+      {/* AI Capture shortcut */}
       <button className="profile-capture-btn" onClick={() => navigate('/capture')}>
         <span className="profile-capture-btn__icon"><Icon name="spark" size={20} /></span>
         <span className="profile-capture-btn__body">
           <span className="profile-capture-btn__label">AI File &amp; Link Analyzer</span>
-          <span className="profile-capture-btn__sub">Paste a URL or upload a PDF — get instant insights</span>
+          <span className="profile-capture-btn__sub">Also accessible from the bottom nav ↓</span>
         </span>
         <Icon name="right" size={18} />
       </button>

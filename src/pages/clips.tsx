@@ -58,10 +58,25 @@ export function ClipsPage() {
   const [activeInterest, setActiveInterest] = useState<string | null>(null);
 
   useEffect(() => {
-    api.liveClips()
-      .then((data) => { setItems(data); setLoading(false); })
+    // DB clips have AI summaries; live clips don't — always prefer DB first.
+    // Supplement with live clips (fresh YouTube) when DB has fewer than 10.
+    api.contentByType('clip')
+      .then(async (dbClips) => {
+        setItems(dbClips);
+        setLoading(false);
+        if (dbClips.length < 10) {
+          try {
+            const live = await api.liveClips();
+            // Dedup by title to avoid duplicates between DB and live feed
+            const dbTitles = new Set(dbClips.map(c => c.title.toLowerCase()));
+            const fresh = live.filter(c => !dbTitles.has(c.title.toLowerCase()));
+            if (fresh.length > 0) setItems(prev => [...prev, ...fresh]);
+          } catch { /* live is best-effort */ }
+        }
+      })
       .catch(() => {
-        api.contentByType('clip')
+        // DB failed — fall back to live YouTube feed
+        api.liveClips()
           .then((data) => { setItems(data); setLoading(false); })
           .catch(() => setLoading(false));
       });
