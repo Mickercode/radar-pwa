@@ -44,6 +44,9 @@ export function AppShell() {
               <img src="/assets/logo-wide.jpeg" alt="Radar" className="nav__logo-img" />
             </div>
             <div className="nav__spacer" />
+            <NavLink to="/library" className="icon-btn" aria-label="Library">
+              <Icon name="brain" size={20} />
+            </NavLink>
           </>
         ) : (
           <>
