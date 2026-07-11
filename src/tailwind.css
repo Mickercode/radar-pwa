@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Map Shadcn's expected CSS variable names to Radar's tokens.
+     This lets Shadcn components work with Radar's existing palette. */
+  :root {
+    --background:  var(--bg);
+    --foreground:  var(--text);
+    --card:        var(--bg-card);
+    --card-foreground: var(--text);
+    --popover:     var(--bg-card);
+    --popover-foreground: var(--text);
+    --primary:     var(--cyan);
+    --primary-foreground: #04141a;
+    --secondary:   var(--bg-2);
+    --secondary-foreground: var(--text);
+    --muted:       var(--bg-1);
+    --muted-foreground: var(--text-dim);
+    --accent-color: var(--bg-hover);
+    --accent-foreground: var(--text);
+    --destructive: var(--coral);
+    --destructive-foreground: #fff;
+    --border-color: var(--border);
+    --input-color:  var(--border);
+    --ring:         var(--cyan);
+    --radius: var(--r);
+  }
+}

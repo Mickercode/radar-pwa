@@ -13,6 +13,8 @@ import { CapturePage } from './pages/capture';
 import { BrainPage } from './pages/brain';
 import { NotebookPage } from './pages/notebook';
 import { KnowledgePage } from './pages/knowledge';
+import { LibraryPage } from './pages/library';
+import { ItemPage } from './pages/item';
 import { ProfilePage } from './pages/profile';
 import { SettingsPage } from './pages/settings';
 import { LoginPage } from './pages/login';
@@ -97,6 +99,8 @@ export function App() {
             <Route path="brain"     element={<BrainPage />} />
             <Route path="notebook"  element={<NotebookPage />} />
             <Route path="saved"     element={<KnowledgePage />} />
+            <Route path="library"   element={<LibraryPage />} />
+            <Route path="item/:id"  element={<ItemPage />} />
             <Route path="profile"   element={<ProfilePage />} />
             <Route path="settings"  element={<SettingsPage />} />
             <Route path="admin"     element={<RequireAdmin><AdminPage /></RequireAdmin>} />

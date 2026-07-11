@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from './Icon';
 import { type ContentItem, type KeyMoment, api } from '../lib/api';
 import { saveItem, unsaveItem, isSaved } from '../lib/saved';
@@ -6,7 +7,6 @@ import { usePlayer } from './AudioPlayer';
 
 interface Props {
   item: ContentItem;
-  onClose: () => void;
 }
 
 function timeAgo(iso: string): string {
@@ -33,7 +33,8 @@ function fmtStamp(secs: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export function DetailView({ item, onClose }: Props) {
+export function DetailView({ item }: Props) {
+  const navigate = useNavigate();
   const s = item.summary;
   const [saved, setSaved]       = useState(() => isSaved(item.id));
   const [moments, setMoments]   = useState<KeyMoment[]>([]);
@@ -86,7 +87,7 @@ export function DetailView({ item, onClose }: Props) {
     <div className="dv">
       {/* Top bar */}
       <div className="dv__bar">
-        <button className="dv__back icon-btn" onClick={onClose} aria-label="Go back">
+        <button className="dv__back icon-btn" onClick={() => navigate(-1 as never)} aria-label="Go back">
           <Icon name="left" size={20} />
         </button>
         <span className="dv__type">{item.type.toUpperCase()}</span>

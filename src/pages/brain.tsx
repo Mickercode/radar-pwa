@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { getSavedItems, type SavedItem } from '../lib/saved';
-import { DetailView } from '../components/DetailView';
 import { api, type InsightsReport } from '../lib/api';
 import type { ContentItem } from '../lib/api';
 import { buildGraph } from '../lib/graph';
@@ -38,10 +38,10 @@ function relTime(iso: string) {
 type WebView = 'graph' | 'list';
 
 export function BrainPage() {
+  const navigate = useNavigate();
   const [tab, setTab]             = useState<Tab>('web');
   const [checkinTab, setCheckinTab] = useState<'weekly'|'monthly'|'quarterly'>('weekly');
   const [search, setSearch]       = useState('');
-  const [detail, setDetail]       = useState<ContentItem | null>(null);
   const [webView, setWebView]     = useState<WebView>('list');
   const [aiReport, setAiReport]   = useState<InsightsReport | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
@@ -89,8 +89,6 @@ export function BrainPage() {
         s.keyTakeaways.some(t => t.toLowerCase().includes(search.toLowerCase()))
       )
     : saved;
-
-  if (detail) return <DetailView item={detail} onClose={() => setDetail(null)} />;
 
   return (
     <div className="brain-page">
@@ -166,7 +164,7 @@ export function BrainPage() {
                 data={graphData}
                 onSelect={(id) => {
                   const item = saved.find(s => s.id === id);
-                  if (item) setDetail(savedToContent(item));
+                  if (item) { const c = savedToContent(item); navigate(`/item/${c.id}`, { state: { item: c } }); }
                 }}
               />
             </div>
@@ -177,7 +175,7 @@ export function BrainPage() {
           ) : (
             <ul className="brain-list">
               {filtered.map(item => (
-                <li key={item.id} className="brain-item" onClick={()=>setDetail(savedToContent(item))}>
+                <li key={item.id} className="brain-item" onClick={() => { const c = savedToContent(item); navigate(`/item/${c.id}`, { state: { item: c } }); }}>
                   <div className="brain-item__head">
                     <span className={`brain-item__type brain-item__type--${item.type}`}>{item.type}</span>
                     <span className="brain-item__time">{relTime(item.savedAt)}</span>
@@ -210,7 +208,7 @@ export function BrainPage() {
           ) : (
             <ul className="brain-list" style={{marginTop:'1rem'}}>
               {reminderItems.map(item=>(
-                <li key={item.id} className="brain-item brain-item--remind" onClick={()=>setDetail(savedToContent(item))}>
+                <li key={item.id} className="brain-item brain-item--remind" onClick={() => { const c = savedToContent(item); navigate(`/item/${c.id}`, { state: { item: c } }); }}>
                   <div className="brain-item__head">
                     <span className="remind-badge">
                       {(degreeCounts[item.id] ?? 0) > 0

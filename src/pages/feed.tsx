@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { type ContentItem, api } from '../lib/api';
 import { saveItem, unsaveItem, isSaved } from '../lib/saved';
-import { DetailView } from '../components/DetailView';
 import { useAuth } from '../lib/auth';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 
 type TypeFilter = 'all' | 'news' | 'podcast' | 'clip';
 
@@ -128,7 +129,7 @@ function formatDuration(secs: number): string {
 
 // ── Feed card ─────────────────────────────────────────────────────────────────
 
-function FeedCard({ item, onDetail }: { item: ContentItem; onDetail: (i: ContentItem) => void }) {
+function FeedCard({ item, onDetail }: { item: ContentItem; onDetail: (i: ContentItem) => void; }) {
   const [saved, setSaved] = useState(() => isSaved(item.id));
   const isMustSee = (item.summary?.nigeriaRelevance ?? 0) >= 2 || (item.summary?.tier ?? 3) === 1;
 
@@ -147,7 +148,7 @@ function FeedCard({ item, onDetail }: { item: ContentItem; onDetail: (i: Content
               <Icon name={item.type === 'podcast' ? 'headphones' : item.type === 'clip' ? 'play' : 'feed'} size={32} />
             </div>
         }
-        <span className={`gcard__badge gcard__badge--${item.type}`}>{item.type.toUpperCase()}</span>
+        <Badge variant={item.type as 'news' | 'podcast' | 'clip'}>{item.type.toUpperCase()}</Badge>
         {isMustSee && <span className="gcard__must">★ Must-See</span>}
         <button
           className={`gcard__save icon-btn${saved ? ' save-active' : ''}`}
@@ -182,13 +183,12 @@ export function FeedPage() {
   // Active interest tab — null means "For You"
   const [activeInterest, setActiveInterest] = useState<string | null>(null);
   const [activeSub, setActiveSub]           = useState<string | null>(null);
-  const [typeFilter, setTypeFilter]         = useState<TypeFilter>('news');
+  const [typeFilter, setTypeFilter]         = useState<TypeFilter>('all');
 
   const [items, setItems]         = useState<ContentItem[]>([]);
   const [livePods, setLivePods]   = useState<ContentItem[]>([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState<string | null>(null);
-  const [detail, setDetail]       = useState<ContentItem | null>(null);
 
   // ── Feed cache (in-memory + 5-min localStorage TTL) ───────────────────────
   const FEED_TTL = 5 * 60 * 1000;
@@ -381,6 +381,14 @@ export function FeedPage() {
       {/* ── Interest tabs (only if user has interests) ─ */}
       {interests.length > 0 && (
         <div className="feed-interest-tabs" role="tablist" aria-label="Interest filter">
+          <button
+            role="tab"
+            aria-selected={activeInterest === null}
+            className={`feed-itab${activeInterest === null ? ' feed-itab--active' : ''}`}
+            onClick={() => switchInterest(null)}
+          >
+            For You
+          </button>
           {interests.map(slug => (
             <button
               key={slug}
@@ -416,18 +424,20 @@ export function FeedPage() {
         </div>
       )}
 
-      {/* ── Type filter chips ─────────────────────────── */}
-      <div className="feed-chips">
-        {(['news', 'podcast', 'clip'] as TypeFilter[]).map(f => (
-          <button
-            key={f}
-            className={`feed-chip${typeFilter === f ? ' feed-chip--active' : ''}`}
-            onClick={() => setTypeFilter(f)}
-          >
-            {f === 'podcast' ? 'Podcasts' : f === 'news' ? 'News' : 'Clips'}
-          </button>
-        ))}
-      </div>
+      {/* ── Type filter — Shadcn Tabs ─────────────────── */}
+      <Tabs value={typeFilter} onValueChange={v => setTypeFilter(v as TypeFilter)}>
+        <TabsList className="feed-chips gap-1.5 rounded-none bg-transparent px-[var(--page-px)] py-2 border-b border-[var(--border)] overflow-x-auto scrollbar-none">
+          {(['all', 'news', 'podcast', 'clip'] as TypeFilter[]).map(f => (
+            <TabsTrigger
+              key={f}
+              value={f}
+              className="feed-chip data-[state=active]:feed-chip--active rounded-full h-7 px-3 text-[0.72rem] font-semibold border border-[var(--border-strong)] bg-transparent text-[var(--text-dim)] data-[state=active]:bg-[var(--text)] data-[state=active]:text-[var(--bg)] data-[state=active]:border-[var(--text)] hover:border-[var(--cyan)] hover:text-[var(--text)] transition-all duration-150 whitespace-nowrap"
+            >
+              {f === 'all' ? 'All' : f === 'podcast' ? 'Podcasts' : f === 'news' ? 'News' : 'Clips'}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* ── Content ───────────────────────────────────── */}
       <div className="feed-scroll">
@@ -474,7 +484,7 @@ export function FeedPage() {
                   </h2>
                   <div className="feed-grid">
                     {grpItems.slice(0, 4).map(item => (
-                      <FeedCard key={item.id} item={item} onDetail={setDetail} />
+                      <FeedCard key={item.id} item={item} onDetail={i => navigate(`/item/${i.id}`, { state: { item: i } })} />
                     ))}
                   </div>
                 </section>
@@ -483,14 +493,13 @@ export function FeedPage() {
           ) : (
             <div className="feed-grid">
               {visible.map(item => (
-                <FeedCard key={item.id} item={item} onDetail={setDetail} />
+                <FeedCard key={item.id} item={item} onDetail={i => navigate(`/item/${i.id}`, { state: { item: i } })} />
               ))}
             </div>
           )
         )}
       </div>
 
-      {detail && <DetailView item={detail} onClose={() => setDetail(null)} />}
     </div>
   );
 }

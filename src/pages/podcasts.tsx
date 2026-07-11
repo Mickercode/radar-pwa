@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { api, type ContentItem, type Topic, type PodcastFeed } from '../lib/api';
 import { usePlayer } from '../components/AudioPlayer';
-import { DetailView } from '../components/DetailView';
 import { PodcastSearch } from '../features/podcasts/PodcastSearch';
 import { PodcastDetail } from '../features/podcasts/PodcastDetail';
 
@@ -196,12 +196,8 @@ function DiscoverView() {
 // ── Podcasts Page ────────────────────────────────────────────────────────────
 
 export function PodcastsPage() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('browse');
-  const [detail, setDetail] = useState<ContentItem | null>(null);
-
-  if (detail) {
-    return <DetailView item={detail} onClose={() => setDetail(null)} />;
-  }
 
   return (
     <div className="pod-page">
@@ -223,7 +219,7 @@ export function PodcastsPage() {
         </button>
       </div>
 
-      {tab === 'browse' && <BrowseView onSelect={setDetail} />}
+      {tab === 'browse' && <BrowseView onSelect={item => navigate(`/item/${item.id}`, { state: { item } })} />}
       {tab === 'discover' && <DiscoverView />}
     </div>
   );

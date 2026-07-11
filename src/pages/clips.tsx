@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { api, type ContentItem } from '../lib/api';
-import { DetailView } from '../components/DetailView';
 
 function timeAgo(iso: string): string {
   const h = (Date.now() - new Date(iso).getTime()) / 3_600_000;
@@ -11,9 +11,9 @@ function timeAgo(iso: string): string {
 }
 
 export function ClipsPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<ContentItem | null>(null);
 
   useEffect(() => {
     api.liveClips()
@@ -50,7 +50,7 @@ export function ClipsPage() {
           <article
             key={item.id}
             className="clip-card"
-            onClick={() => setSelected(item)}
+            onClick={() => navigate(`/item/${item.id}`, { state: { item } })}
           >
             <div className="clip-card__thumb">
               {item.thumbnailUrl
@@ -71,9 +71,6 @@ export function ClipsPage() {
         ))}
       </div>
 
-      {selected && (
-        <DetailView item={selected} onClose={() => setSelected(null)} />
-      )}
     </div>
   );
 }
