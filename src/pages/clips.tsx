@@ -81,17 +81,9 @@ export function ClipsPage() {
         <h1 className="page-title">Clips</h1>
       </div>
 
-      {/* Interest tabs */}
+      {/* Interest tabs — tap to filter, tap again to clear */}
       {interests.length > 0 && (
         <div className="feed-interest-tabs" role="tablist" aria-label="Filter by interest">
-          <button
-            role="tab"
-            aria-selected={activeInterest === null}
-            className={`feed-itab${activeInterest === null ? ' feed-itab--active' : ''}`}
-            onClick={() => setActiveInterest(null)}
-          >
-            All
-          </button>
           {interests.map(slug => (
             <button
               key={slug}
