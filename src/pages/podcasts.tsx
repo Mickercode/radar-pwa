@@ -38,8 +38,7 @@ function formatDuration(secs: number): string {
 function BrowseView({ onSelect }: { onSelect: (item: ContentItem) => void }) {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
+  const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { play, pause, resume, track, playing } = usePlayer();
 
@@ -54,85 +53,79 @@ function BrowseView({ onSelect }: { onSelect: (item: ContentItem) => void }) {
       });
   }, []);
 
-  function handleSearch() { setQuery(search.trim()); }
-
-  const filtered = query
-    ? items.filter(i =>
-        i.title.toLowerCase().includes(query.toLowerCase()) ||
-        i.source.toLowerCase().includes(query.toLowerCase())
-      )
-    : items;
-
   const topicMap = Object.fromEntries(topics.map(t => [t.id, t]));
   const slugMap = Object.fromEntries(topics.map(t => [t.slug, t]));
-  const grouped: { topic: Topic | null; slug: string; items: ContentItem[] }[] = [];
-  const seen = new Set<string>();
 
-  filtered.forEach(item => {
-    // Live items have no topicId but carry a topic slug directly
+  // Build groups from all items (used for the filter tabs)
+  const allGrouped: { topic: Topic | null; slug: string; items: ContentItem[] }[] = [];
+  const seen = new Set<string>();
+  items.forEach(item => {
     const rawSlug = item.topic;
     const topic = item.topicId ? (topicMap[item.topicId] ?? null) : (rawSlug ? (slugMap[rawSlug] ?? null) : null);
     const slug = topic?.slug ?? rawSlug ?? 'general';
     const key = topic?.id ?? slug;
-    if (!seen.has(key)) {
-      seen.add(key);
-      grouped.push({ topic, slug, items: [] });
-    }
-    grouped.find(g => (topic ? g.topic?.id === topic.id : g.slug === slug))?.items.push(item);
+    if (!seen.has(key)) { seen.add(key); allGrouped.push({ topic, slug, items: [] }); }
+    allGrouped.find(g => (topic ? g.topic?.id === topic.id : g.slug === slug))?.items.push(item);
   });
+
+  // Filter to selected interest tab
+  const grouped = activeSlug
+    ? allGrouped.filter(g => g.slug === activeSlug)
+    : allGrouped;
 
   function handlePlay(item: ContentItem) {
     if (!item.audioUrl) return;
-    if (track?.contentId === item.id) {
-      playing ? pause() : resume();
-    } else {
-      play({ src: item.audioUrl, title: item.title, source: item.source, contentId: item.id, artwork: item.thumbnailUrl });
-    }
+    if (track?.contentId === item.id) { playing ? pause() : resume(); }
+    else { play({ src: item.audioUrl, title: item.title, source: item.source, contentId: item.id, artwork: item.thumbnailUrl }); }
   }
 
   return (
     <>
-      {/* Search */}
-      <div className="pod-search-row">
-        <div className="pod-search-wrap">
-          <Icon name="search" size={16} className="pod-search-icon" />
-          <input
-            className="pod-search"
-            type="search"
-            placeholder="Search episodes…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch()}
-          />
+      {/* Interest filter tabs */}
+      {!loading && allGrouped.length > 0 && (
+        <div className="pod-interest-bar">
+          <button
+            className={`pod-interest-pill${!activeSlug ? ' pod-interest-pill--active' : ''}`}
+            onClick={() => setActiveSlug(null)}
+          >
+            All
+          </button>
+          {allGrouped.map(({ topic, slug }) => (
+            <button
+              key={slug}
+              className={`pod-interest-pill${activeSlug === slug ? ' pod-interest-pill--active' : ''}`}
+              style={activeSlug === slug ? { background: getCategoryColor(slug), borderColor: getCategoryColor(slug) } : {}}
+              onClick={() => setActiveSlug(prev => prev === slug ? null : slug)}
+            >
+              <span className="pod-interest-dot" style={{ background: getCategoryColor(slug) }} />
+              {topic?.name ?? slug.charAt(0).toUpperCase() + slug.slice(1)}
+            </button>
+          ))}
         </div>
-        <button className="pod-search-btn" onClick={handleSearch}>Search</button>
-      </div>
-
-      {/* Header */}
-      <div className="pod-header">
-        <h1 className="pod-title">Browse Podcasts</h1>
-        <p className="pod-subtitle">Curated picks from your feed. Tap to play instantly.</p>
-      </div>
+      )}
 
       {loading && (
         <div className="feed-loading"><div className="feed-spinner" /><p>Loading podcasts…</p></div>
       )}
 
-      {!loading && filtered.length === 0 && (
+      {!loading && grouped.length === 0 && (
         <div className="empty">
           <Icon name="headphones" size={48} />
-          <h3>{query ? 'No results' : 'No podcasts yet'}</h3>
-          <p>{query ? `No episodes matched "${query}".` : 'Check back after the next ingest run.'}</p>
+          <h3>No podcasts yet</h3>
+          <p>Check back after the next ingest run.</p>
         </div>
       )}
 
       <div className="pod-scroll">
         {grouped.map(({ topic, slug, items: groupItems }) => (
-          <div key={topic?.id ?? 'none'} className="pod-group">
-            <div className="pod-group-label">
-              <span className="pod-group-dot" style={{ background: getCategoryColor(slug) }} />
-              <span className="pod-group-name">{(topic?.name ?? 'General').toUpperCase()}</span>
-            </div>
+          <div key={topic?.id ?? slug} className="pod-group">
+            {/* Only show the section header when showing all interests */}
+            {!activeSlug && (
+              <div className="pod-group-label">
+                <span className="pod-group-dot" style={{ background: getCategoryColor(slug) }} />
+                <span className="pod-group-name">{(topic?.name ?? slug.charAt(0).toUpperCase() + slug.slice(1)).toUpperCase()}</span>
+              </div>
+            )}
 
             <div className="pod-group-list">
               {groupItems.map(item => (
