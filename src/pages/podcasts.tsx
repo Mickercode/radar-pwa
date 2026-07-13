@@ -61,7 +61,9 @@ function BrowseView({ onSelect }: { onSelect: (item: ContentItem) => void }) {
   const seen = new Set<string>();
   items.forEach(item => {
     const rawSlug = item.topic;
-    const topic = item.topicId ? (topicMap[item.topicId] ?? null) : (rawSlug ? (slugMap[rawSlug] ?? null) : null);
+    const topic = item.topicId
+      ? (topicMap[item.topicId] ?? null)
+      : (rawSlug ? (slugMap[rawSlug] ?? topicMap[rawSlug] ?? null) : null);
     const slug = topic?.slug ?? rawSlug ?? 'general';
     const key = topic?.id ?? slug;
     if (!seen.has(key)) { seen.add(key); allGrouped.push({ topic, slug, items: [] }); }
