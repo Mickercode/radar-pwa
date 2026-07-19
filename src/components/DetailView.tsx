@@ -76,10 +76,12 @@ export function DetailView({ item }: Props) {
   }
 
   function handleShare() {
+    // Share the Radar deep link so recipients land back in the app with the item loaded.
+    const radarUrl = `${window.location.origin}/item/${item.id}`;
     if (navigator.share) {
-      navigator.share({ title: item.title, url: item.articleUrl ?? location.href }).catch(() => {});
+      navigator.share({ title: item.title, url: radarUrl }).catch(() => {});
     } else {
-      navigator.clipboard?.writeText(item.articleUrl ?? location.href).catch(() => {});
+      navigator.clipboard?.writeText(radarUrl).catch(() => {});
     }
   }
 

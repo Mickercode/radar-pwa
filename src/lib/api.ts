@@ -197,6 +197,8 @@ export const api = {
   podcastEpisodesByFeedUrl: (url: string, max = 20) =>
     get<EpisodeResult>('/podcasts/by-feed-url/episodes', { url, max: String(max) }),
 
+  contentById: (id: string) => get<ContentItem>(`/content/${id}`),
+
   keyMoments: (contentId: string) => get<KeyMoment[]>(`/content/${contentId}/key-moments`),
 
   insightsReport: (items: Array<{ title: string; type: string; source: string }>) =>
