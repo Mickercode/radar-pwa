@@ -3,6 +3,15 @@ import { api } from '../lib/api';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../lib/auth';
 
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string | null;
+  isSuperAdmin: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
 export interface AdminStats {
   users: {
     total: number;
@@ -88,6 +97,53 @@ function Section({ title, icon, children }: { title: string; icon: string; child
   );
 }
 
+function AdminListSection() {
+  const [admins, setAdmins] = useState<AdminUser[] | null>(null);
+  const [err, setErr]       = useState('');
+
+  useEffect(() => {
+    api.adminList()
+      .then(setAdmins)
+      .catch((e: Error) => setErr(e.message));
+  }, []);
+
+  function fmtDate(iso: string | null): string {
+    if (!iso) return 'Never';
+    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  return (
+    <Section title="Admin Logins" icon="profile">
+      {err && <p className="adm-grant-err">{err}</p>}
+      {!admins && !err && <p className="adm-empty">Loading…</p>}
+      {admins && admins.length === 0 && <p className="adm-empty">No admins found.</p>}
+      {admins && admins.length > 0 && (
+        <div className="adm-table">
+          <div className="adm-table__head" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+            <span>Admin</span><span>Role</span><span>Last Login</span>
+          </div>
+          {admins.map((a) => (
+            <div key={a.id} className="adm-table__row" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+              <span className="adm-table__title">
+                <span>{a.name ?? a.email}</span>
+                {a.name && <span className="adm-table__source" style={{ display: 'block', fontSize: '11px' }}>{a.email}</span>}
+              </span>
+              <span>
+                <span className={`adm-type-pill${a.isSuperAdmin ? ' adm-type-pill--super' : ''}`}>
+                  {a.isSuperAdmin ? 'Super Admin' : 'Admin'}
+                </span>
+              </span>
+              <span className="adm-table__count" style={{ textAlign: 'left', fontSize: '12px' }}>
+                {fmtDate(a.lastLoginAt)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
+  );
+}
+
 function GrantAdminForm() {
   const [email, setEmail]   = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
@@ -137,6 +193,7 @@ export function AdminPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const user = useAuth(s => s.user);
+  const isSuperAdmin = useAuth(s => s.isSuperAdmin);
 
   useEffect(() => {
     api.adminStats()
@@ -344,6 +401,7 @@ export function AdminPage() {
         </div>
       </Section>
 
+      {isSuperAdmin && <AdminListSection />}
       <GrantAdminForm />
     </div>
   );

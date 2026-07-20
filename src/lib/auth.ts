@@ -12,12 +12,14 @@ export interface AuthUser {
   email: string;
   name: string | null;
   isAdmin?: boolean;
+  isSuperAdmin?: boolean;
 }
 
 export interface AuthState {
   token: string | null;
   user: AuthUser | null;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   interests: string[];
   location: string | null;
   onboardingDone: boolean;
@@ -37,12 +39,13 @@ export const useAuth = create<AuthState>()(
       token: null,
       user: null,
       isAdmin: false,
+      isSuperAdmin: false,
       interests: [],
       location: null,
       onboardingDone: false,
       hydrated: false,
-      setAuth: (token, user) => set({ token, user, isAdmin: user.isAdmin ?? false, hydrated: true }),
-      clearAuth: () => set({ token: null, user: null, isAdmin: false, interests: [], location: null, onboardingDone: false, hydrated: true }),
+      setAuth: (token, user) => set({ token, user, isAdmin: user.isAdmin ?? false, isSuperAdmin: user.isSuperAdmin ?? false, hydrated: true }),
+      clearAuth: () => set({ token: null, user: null, isAdmin: false, isSuperAdmin: false, interests: [], location: null, onboardingDone: false, hydrated: true }),
       setPrefs: (prefs) => set(prefs),
       setAdmin: (isAdmin) => set({ isAdmin }),
     }),
@@ -52,6 +55,7 @@ export const useAuth = create<AuthState>()(
         token: state.token,
         user: state.user,
         isAdmin: state.isAdmin,
+        isSuperAdmin: state.isSuperAdmin,
         interests: state.interests,
         location: state.location,
         onboardingDone: state.onboardingDone,

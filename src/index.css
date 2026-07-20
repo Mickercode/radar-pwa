@@ -4634,6 +4634,7 @@ a {
   color: var(--text-dim); text-transform: capitalize;
 }
 .adm-type-pill strong { color: var(--text); margin-left: 0.25rem; }
+.adm-type-pill--super { background: var(--accent-dim, #1e3a2e); color: var(--accent, #4ade80); }
 
 .adm-table { border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; margin-top: 0.5rem; }
 .adm-table__head {

@@ -225,6 +225,8 @@ export const api = {
 
   adminStats: () => get<import('../pages/admin').AdminStats>('/admin/stats'),
 
+  adminList: () => get<import('../pages/admin').AdminUser[]>('/admin/admins'),
+
   grantAdmin: (email: string) =>
     fetch(BASE + '/admin/grant-admin', {
       method: 'POST',
