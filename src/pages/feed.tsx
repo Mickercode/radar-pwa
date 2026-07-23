@@ -336,6 +336,7 @@ export function FeedPage() {
   const showGrouped  = isForYou && forYouGroups.length > 0;
 
   return (
+    <>
     <div className="feed-page">
       {/* ── Page header ─────────────────────────────── */}
       <div className="feed-head">
@@ -480,5 +481,6 @@ export function FeedPage() {
     {sheetItem && (
       <SummarySheet item={sheetItem} onClose={closePreview} />
     )}
+    </>
   );
 }

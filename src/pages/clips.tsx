@@ -103,6 +103,7 @@ export function ClipsPage() {
     : items;
 
   return (
+    <>
     <div className="clips-page">
       <div className="page-head">
         <div className="page-kicker">Watch &amp; Learn</div>
@@ -175,5 +176,6 @@ export function ClipsPage() {
     {sheetItem && (
       <SummarySheet item={sheetItem} onClose={closePreview} />
     )}
+    </>
   );
 }
