@@ -1977,6 +1977,29 @@ a {
   margin-bottom: 0.5rem;
 }
 
+.sheet__footer {
+  padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(22,28,50,0.98);
+}
+.sheet__full-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.25rem;
+  background: var(--cyan, #00c2cb);
+  color: #000;
+  font-size: var(--step-0);
+  font-weight: 700;
+  border: none;
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.sheet__full-btn:active { opacity: 0.8; }
+
 /* ── Summary sections (What/Why/Edge/Takeaways) */
 .sum-section {
   margin-bottom: 1.5rem;

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { api, type ContentItem } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { SummarySheet } from '../components/SummarySheet';
 
 // Shared with feed.tsx — keyword lists for client-side interest filtering
 const INTEREST_LABELS: Record<string, string> = {
@@ -51,7 +52,19 @@ function formatDuration(secs: number): string {
 
 export function ClipsPage() {
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const { interests } = useAuth();
+
+  const sheetItem = new URLSearchParams(routerLocation.search).has('sheet')
+    ? ((routerLocation.state as { previewItem?: ContentItem } | null)?.previewItem ?? null)
+    : null;
+
+  function openPreview(item: ContentItem) {
+    navigate('?sheet=1', { state: { previewItem: item } });
+  }
+  function closePreview() {
+    navigate(-1 as never);
+  }
 
   const [items, setItems]               = useState<ContentItem[]>([]);
   const [loading, setLoading]           = useState(true);
@@ -130,7 +143,7 @@ export function ClipsPage() {
           <article
             key={item.id}
             className="clip-card"
-            onClick={() => navigate(`/item/${item.id}`, { state: { item } })}
+            onClick={() => openPreview(item)}
           >
             <div className="clip-card__thumb">
               {item.thumbnailUrl
@@ -158,5 +171,9 @@ export function ClipsPage() {
       </div>
 
     </div>
+
+    {sheetItem && (
+      <SummarySheet item={sheetItem} onClose={closePreview} />
+    )}
   );
 }

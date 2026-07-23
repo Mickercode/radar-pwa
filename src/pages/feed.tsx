@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { SummarySheet } from '../components/SummarySheet';
 import { type ContentItem, api } from '../lib/api';
 import { saveItem, unsaveItem, isSaved } from '../lib/saved';
 import { useAuth } from '../lib/auth';
@@ -175,7 +176,20 @@ function FeedCard({ item, onDetail }: { item: ContentItem; onDetail: (i: Content
 
 export function FeedPage() {
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const { interests, location, user } = useAuth();
+
+  // Preview sheet — URL-driven so back from ItemPage reopens it
+  const sheetItem = new URLSearchParams(routerLocation.search).has('sheet')
+    ? ((routerLocation.state as { previewItem?: ContentItem } | null)?.previewItem ?? null)
+    : null;
+
+  function openPreview(item: ContentItem) {
+    navigate('?sheet=1', { state: { previewItem: item } });
+  }
+  function closePreview() {
+    navigate(-1 as never);
+  }
 
   // Active interest tab — null means "For You"
   const [activeInterest, setActiveInterest] = useState<string | null>(null);
@@ -445,7 +459,7 @@ export function FeedPage() {
                   </h2>
                   <div className="feed-grid">
                     {grpItems.slice(0, 4).map(item => (
-                      <FeedCard key={item.id} item={item} onDetail={i => navigate(`/item/${i.id}`, { state: { item: i } })} />
+                      <FeedCard key={item.id} item={item} onDetail={openPreview} />
                     ))}
                   </div>
                 </section>
@@ -454,7 +468,7 @@ export function FeedPage() {
           ) : (
             <div className="feed-grid">
               {visible.map(item => (
-                <FeedCard key={item.id} item={item} onDetail={i => navigate(`/item/${i.id}`, { state: { item: i } })} />
+                <FeedCard key={item.id} item={item} onDetail={openPreview} />
               ))}
             </div>
           )
@@ -462,5 +476,9 @@ export function FeedPage() {
       </div>
 
     </div>
+
+    {sheetItem && (
+      <SummarySheet item={sheetItem} onClose={closePreview} />
+    )}
   );
 }

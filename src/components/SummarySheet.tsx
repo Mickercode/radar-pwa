@@ -1,13 +1,13 @@
+import { useNavigate } from 'react-router-dom';
 import { Icon } from './Icon';
 import { type ContentItem } from '../lib/api';
 import { saveItem, unsaveItem, isSaved } from '../lib/saved';
 import { useState } from 'react';
+import { usePlayer } from './AudioPlayer';
 
 interface Props {
   item: ContentItem;
   onClose: () => void;
-  onPlay?: (item: ContentItem) => void;
-  isPlaying?: boolean;
 }
 
 function timeAgo(iso: string): string {
@@ -17,13 +17,27 @@ function timeAgo(iso: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export function SummarySheet({ item, onClose, onPlay, isPlaying }: Props) {
+export function SummarySheet({ item, onClose }: Props) {
+  const navigate = useNavigate();
   const s = item.summary;
   const [saved, setSaved] = useState(() => isSaved(item.id));
+  const { play, pause, resume, track, playing } = usePlayer();
+
+  const isPlayingThis = track?.contentId === item.id && playing;
 
   function toggleSave() {
     if (saved) { unsaveItem(item.id); setSaved(false); }
     else { saveItem(item); setSaved(true); }
+  }
+
+  function handlePlay() {
+    if (!item.audioUrl) return;
+    if (track?.contentId === item.id) { playing ? pause() : resume(); }
+    else { play({ src: item.audioUrl, title: item.title, source: item.source, contentId: item.id, artwork: item.thumbnailUrl }); }
+  }
+
+  function handleViewFull() {
+    navigate(`/item/${item.id}`, { state: { item } });
   }
 
   return (
@@ -61,13 +75,13 @@ export function SummarySheet({ item, onClose, onPlay, isPlaying }: Props) {
 
             <h1 className="sheet__title">{item.title}</h1>
 
-            {/* Play button for podcasts/clips */}
-            {(item.type === 'podcast' && item.audioUrl && onPlay) && (
+            {/* Play button for podcasts */}
+            {item.type === 'podcast' && item.audioUrl && (
               <button
-                className={`sheet__play-btn${isPlaying ? ' sheet__play-btn--playing' : ''}`}
-                onClick={() => onPlay(item)}
+                className={`sheet__play-btn${isPlayingThis ? ' sheet__play-btn--playing' : ''}`}
+                onClick={handlePlay}
               >
-                {isPlaying
+                {isPlayingThis
                   ? <><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause</>
                   : <><Icon name="play" size={18} /> Play episode</>
                 }
@@ -109,16 +123,10 @@ export function SummarySheet({ item, onClose, onPlay, isPlaying }: Props) {
             )}
 
             {/* ── Why It Matters ── */}
-            {s?.whyItMatters && (
+            {(s?.whyItMatters || s?.why) && (
               <section className="sum-section">
                 <h2 className="sum-label sum-label--why">Why It Matters</h2>
-                <p className="sum-prose">{s.whyItMatters}</p>
-              </section>
-            )}
-            {s?.why && !s?.whyItMatters && (
-              <section className="sum-section">
-                <h2 className="sum-label sum-label--why">Why It Matters</h2>
-                <p className="sum-prose">{s.why}</p>
+                <p className="sum-prose">{s?.whyItMatters ?? s?.why}</p>
               </section>
             )}
 
@@ -155,6 +163,16 @@ export function SummarySheet({ item, onClose, onPlay, isPlaying }: Props) {
               </a>
             )}
           </div>
+        </div>
+
+        {/* Full Analysis CTA */}
+        <div className="sheet__footer">
+          <button className="sheet__full-btn" onClick={handleViewFull}>
+            Full Analysis
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>

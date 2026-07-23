@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { SummarySheet } from '../components/SummarySheet';
 import { Icon } from '../components/Icon';
 import { api, type ContentItem, type Topic, type PodcastFeed } from '../lib/api';
 import { usePlayer } from '../components/AudioPlayer';
@@ -192,7 +193,19 @@ function DiscoverView() {
 
 export function PodcastsPage() {
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const [tab, setTab] = useState<Tab>('browse');
+
+  const sheetItem = new URLSearchParams(routerLocation.search).has('sheet')
+    ? ((routerLocation.state as { previewItem?: ContentItem } | null)?.previewItem ?? null)
+    : null;
+
+  function openPreview(item: ContentItem) {
+    navigate('?sheet=1', { state: { previewItem: item } });
+  }
+  function closePreview() {
+    navigate(-1 as never);
+  }
 
   return (
     <div className="pod-page">
@@ -214,8 +227,12 @@ export function PodcastsPage() {
         </button>
       </div>
 
-      {tab === 'browse' && <BrowseView onSelect={item => navigate(`/item/${item.id}`, { state: { item } })} />}
+      {tab === 'browse' && <BrowseView onSelect={openPreview} />}
       {tab === 'discover' && <DiscoverView />}
+
+      {sheetItem && (
+        <SummarySheet item={sheetItem} onClose={closePreview} />
+      )}
     </div>
   );
 }
